@@ -17,7 +17,16 @@ export async function POST() {
     );
 
     return NextResponse.json({ token: response.data.access_token });
-  } catch (error) {
-    return NextResponse.error();
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      console.error('Axios error response:', error.response?.data);
+      console.error('Axios error message:', error.message);
+      console.error('Axios error config:', error.config);
+      console.error('Axios error status:', error.response?.status);
+      return NextResponse.json({ error: 'Failed to fetch token' }, { status: 500 });
+    }
+
+    console.error('Unexpected error:', error);
+    return NextResponse.json({ error: 'Failed to fetch token' }, { status: 500 });
   }
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import axios from 'axios'; // Import Axios
 
 export default function HomePage() {
   const [email, setEmail] = useState("");
@@ -24,13 +25,19 @@ export default function HomePage() {
     }
 
     try {
+      // Fetch the token from the API using Axios
+      const response = await axios.post('/api/generate-token');
+
+      // Store the token in local storage
+      localStorage.setItem("BASI_Q_TOKEN", response.data.token);
+
       // Store the email in local storage
       localStorage.setItem("USER_EMAIL", email);
 
       // Redirect to dashboard after storing the email
       router.push("/dashboard");
     } catch (err) {
-      setError("Failed to store email");
+      setError("Failed to verify income");
       console.error(err); // Log the error for debugging
     } finally {
       setLoading(false);
