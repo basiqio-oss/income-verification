@@ -89,7 +89,7 @@ export default function HomePage() {
           </section>
 
           {/* Income Verification Section */}
-          <div className="flex flex-col items-center bg-white p-8 rounded-lg shadow-lg w-full max-w-sm mx-auto">
+          <div className="flex flex-col items-center p-8 rounded-lg shadow-lg w-full max-w-sm mx-auto">
             <h1 className="text-2xl font-bold mb-4">Connect my Bank Account</h1>
             <div className="w-full mb-4">
               <Label htmlFor="email">Email Address</Label>
