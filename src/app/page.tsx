@@ -5,23 +5,24 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import axios from "axios"; // Import Axios
+import axios from "axios";
 import Link from "next/link";
 import { PanelsTopLeft } from "lucide-react";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { ModeToggle } from "@/components/mode-toggle";
+import '../styles/global.css';
 
 export default function HomePage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [redirecting, setRedirecting] = useState(false); // New state for redirect
   const router = useRouter();
 
   const handleVerifyIncome = async () => {
     setLoading(true);
     setError("");
 
-    // Simple email validation
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
       setError("Please enter a valid email address.");
       setLoading(false);
@@ -29,14 +30,11 @@ export default function HomePage() {
     }
 
     try {
-      // Step 1: Fetch the Basiq token
       const tokenResponse = await axios.post("/api/generate-token");
       const basiQToken = tokenResponse.data.token;
 
-      // Store the token in localStorage
       localStorage.setItem("BASI_Q_TOKEN", basiQToken);
 
-      // Step 2: Use the token to create a user
       const userResponse = await axios.post(
         "/api/server",
         { email },
@@ -49,21 +47,22 @@ export default function HomePage() {
 
       const { consentUrl, userId } = userResponse.data;
       console.log(consentUrl, userId);
-  
-      // Store the userId in localStorage
+
       if (userId) {
         localStorage.setItem("USER_ID", userId);
       }
-  
-      // Redirect to the consent URL
+
       if (consentUrl) {
-        window.location.href = consentUrl;
+        setRedirecting(true); // Set redirect state to true
+        setTimeout(() => {
+          window.location.href = consentUrl;
+        }, 500); // Delay redirect to show spinner
       } else {
         setError("Failed to get the consent URL.");
       }
     } catch (err) {
       setError("Failed to verify income.");
-      console.error(err); // Log the error for debugging
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -130,6 +129,11 @@ export default function HomePage() {
               {loading ? "Connecting..." : "Connect"}
             </Button>
             {error && <p className="text-red-500 mt-4">{error}</p>}
+            {redirecting && (
+              <div className="flex justify-center items-center mt-4">
+                <div className="spinner"></div>
+              </div>
+            )}
           </div>
         </div>
       </main>
