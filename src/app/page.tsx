@@ -7,9 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import axios from "axios"; // Import Axios
 import Link from "next/link";
-import Image from "next/image";
 import { PanelsTopLeft } from "lucide-react";
-import { ArrowRightIcon, GitHubLogoIcon } from "@radix-ui/react-icons";
+import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { ModeToggle } from "@/components/mode-toggle";
 
 export default function HomePage() {
@@ -30,19 +29,34 @@ export default function HomePage() {
     }
 
     try {
-      // Fetch the token from the API using Axios
-      const response = await axios.post("/api/generate-token");
+      // Step 1: Fetch the Basiq token
+      const tokenResponse = await axios.post("/api/generate-token");
+      const basiQToken = tokenResponse.data.token;
 
-      // Store the token in local storage
-      localStorage.setItem("BASI_Q_TOKEN", response.data.token);
+      // Store the token in localStorage
+      localStorage.setItem("BASI_Q_TOKEN", basiQToken);
 
-      // Store the email in local storage
-      localStorage.setItem("USER_EMAIL", email);
+      // Step 2: Use the token to create a user
+      const userResponse = await axios.post(
+        "/api/server",
+        { email },
+        {
+          headers: {
+            Authorization: `Bearer ${basiQToken}`,
+          },
+        }
+      );
 
-      // Redirect to dashboard after storing the email
-      router.push("/dashboard");
+      const { consentUrl } = userResponse.data;
+
+      // Redirect to the consent URL
+      if (consentUrl) {
+        window.location.href = consentUrl;
+      } else {
+        setError("Failed to get the consent URL.");
+      }
     } catch (err) {
-      setError("Failed to verify income");
+      setError("Failed to verify income.");
       console.error(err); // Log the error for debugging
     } finally {
       setLoading(false);
@@ -83,9 +97,8 @@ export default function HomePage() {
               Income Verification through BASIQ API
             </h1>
             <span className="max-w-[750px] text-center text-lg font-light text-foreground">
-            Allows businesses and lenders to verify an individual’s income from various financial sources, ensuring accurate and reliable income data.
+              Allows businesses and lenders to verify an individual’s income from various financial sources, ensuring accurate and reliable income data.
             </span>
-            
           </section>
 
           {/* Income Verification Section */}
@@ -117,7 +130,7 @@ export default function HomePage() {
       <footer className="py-6 md:py-0 border-t border-border/40">
         <div className="container flex flex-col items-center justify-center gap-4 md:h-24 md:flex-row">
           <p className="text-balance text-center text-sm leading-loose text-muted-foreground">
-            This is a demo app. 
+            This is a demo app.
           </p>
         </div>
       </footer>

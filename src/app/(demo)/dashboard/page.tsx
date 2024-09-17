@@ -1,5 +1,3 @@
-// app/demo/dashboard/page.tsx
-
 "use client"; // Add this line at the top
 
 import Link from "next/link";
@@ -14,14 +12,61 @@ import {
   BreadcrumbSeparator
 } from "@/components/ui/breadcrumb";
 import { useEffect, useState } from 'react';
+import axios from 'axios';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function DashboardPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [jobDetails, setJobDetails] = useState<any>(null); // Add state to store job details
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Retrieve the email from local storage on the client side
+    // Retrieve the email and token from local storage on the client side
     const email = localStorage.getItem("USER_EMAIL");
+    const token = localStorage.getItem("BASI_Q_TOKEN");
     setUserEmail(email);
+
+    // Extract jobId from URL query parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const jobId = urlParams.get('jobId');
+
+    if (jobId && token) {
+      setLoading(true);
+      axios.get(`/api/get-job?jobId=${jobId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+        .then(response => {
+          setJobDetails(response.data);
+          setLoading(false);
+        })
+        .catch(err => {
+          if (axios.isAxiosError(err)) {
+            console.error('API request error:', err.response?.data || err.message || err);
+            setError('Failed to fetch job details: ' + (err.response?.data?.error || err.message || 'Unknown error'));
+          } else {
+            console.error('Unexpected error:', err);
+            setError('Failed to fetch job details: An unexpected error occurred.');
+          }
+          setLoading(false);
+        });
+    } else {
+      if (!jobId) {
+        setError('Job ID is missing');
+      }
+      if (!token) {
+        setError('Token is missing');
+      }
+    }
   }, []);
 
   return (
@@ -55,10 +100,43 @@ export default function DashboardPage() {
             <li>Use these IDs to create the report.</li>
           </ol>
         </div>
-        </div>
+        {loading && <p>Loading job details...</p>}
+        {error && <p className="text-red-500">{error}</p>}
+        {jobDetails && (
+          <div className="mt-6 p-4 space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Job ID</CardTitle>
+                <CardDescription>{jobDetails.id}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p><strong>Created At:</strong> {new Date(jobDetails.created).toLocaleString()}</p>
+                <p><strong>Updated At:</strong> {new Date(jobDetails.updated).toLocaleString()}</p>
+                <p><strong>Job Type:</strong> {jobDetails.jobType}</p>
+              </CardContent>
+              <CardFooter>
+                <p>Status: {jobDetails.steps.every((step: any) => step.status === 'success') ? 'Success' : 'Incomplete'}</p>
+              </CardFooter>
+            </Card>
+            {jobDetails.steps.map((step: any, index: number) => (
+              <Card key={index}>
+                <CardHeader>
+                  <CardTitle>Step: {step.title}</CardTitle>
+                  <CardDescription>Status: {step.status}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {step.result.type === 'link' && (
+                    <p>
+                      <strong>URL:</strong> <Link href={step.result.url} target="_blank" rel="noopener noreferrer">{step.result.url}</Link>
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
         <PlaceholderContent />
-        
-       
+      </div>
     </ContentLayout>
   );
 }
