@@ -89,9 +89,9 @@ export function getMenuList(pathname: string): Group[] {
           submenus: []
         },
         {
-          href: "/account",
-          label: "Account",
-          active: pathname.includes("/account"),
+          href: "/income",
+          label: "Income Verification",
+          active: pathname.includes("/income"),
           icon: Settings,
           submenus: []
         }

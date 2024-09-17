@@ -1,7 +1,7 @@
 "use client"; // Add this line at the top
 
 import Link from "next/link";
-import PlaceholderContent from "@/components/demo/placeholder-content";
+//import PlaceholderContent from "@/components/demo/placeholder-content";
 import { ContentLayout } from "@/components/admin-panel/content-layout";
 import {
   Breadcrumb,
@@ -151,7 +151,7 @@ export default function DashboardPage() {
           </div>
         )}
         <p>&nbsp;</p>
-        <PlaceholderContent />
+        {/* <PlaceholderContent /> */}
       </div>
     </ContentLayout>
   );
