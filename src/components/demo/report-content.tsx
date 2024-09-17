@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Accordion from "../Accordion"; // Adjust the import path as necessary
 
 interface Filter {
   name: string;
@@ -16,6 +17,20 @@ interface Metric {
     value: string;
     format?: string;
   };
+}
+
+interface Transaction {
+  id: string;
+  date: string;
+  description: string;
+  amount: string;
+}
+
+interface Subgroup {
+  id: string;
+  name: string;
+  transactions: Transaction[];
+  analysis: any; // Replace with actual type if available
 }
 
 interface Group {
@@ -60,6 +75,7 @@ interface Group {
       subgroup: string;
     };
   };
+  subgroup: Subgroup[];
 }
 
 interface ReportData {
@@ -98,61 +114,29 @@ const allowedGroups = [
   "INC-019", "INC-020", "INC-021"
 ];
 
-// const isGroupMeaningful = (group: Group) => {
-//   return group.analysis.summary.transactionCount !== 0 ||
-//     group.analysis.summary.overallPercentage.credit !== 0 ||
-//     group.analysis.summary.overallPercentage.debit !== 0 ||
-//     group.analysis.range.startDate !== "" ||
-//     group.analysis.range.endDate !== "" ||
-//     group.analysis.range.duration !== 0 ||
-//     group.analysis.amount.total !== "0.00" ||
-//     group.analysis.amount.min !== "0.00" ||
-//     group.analysis.amount.max !== "0.00" ||
-//     group.analysis.amount.average.transaction !== "0.00" ||
-//     group.analysis.amount.average.month !== "0.00" ||
-//     group.analysis.amount.average.medianTransaction !== "0.00" ||
-//     group.analysis.amount.average.medianMonth !== "0.00" ||
-//     group.analysis.amount.average.ongoingMonth !== "0.00" ||
-//     group.analysis.amount.stableMonths !== 0 ||
-//     group.analysis.amount.secureMonths !== 0 ||
-//     group.analysis.frequency.type !== "" && group.analysis.frequency.type !== "NONE" ||
-//     group.analysis.frequency.amount !== "" && group.analysis.frequency.amount !== "NONE" ||
-//     group.analysis.frequency.display !== "" && group.analysis.frequency.display !== "NONE" ||
-//     group.analysis.frequency.next.date !== "" && group.analysis.frequency.next.date !== "NONE" ||
-//     group.analysis.frequency.next.amount !== "" && group.analysis.frequency.next.amount !== "NONE" ||
-//     group.analysis.frequency.subgroup !== "" && group.analysis.frequency.subgroup !== "NONE";
-// };
 const isGroupMeaningful = (group: Group) => {
-    const { analysis } = group;
-    
-    // Check if any significant field in the group is meaningful
-    return analysis.summary.transactionCount > 0 || 
-           parseFloat(analysis.amount.total) > 0 || 
-           parseFloat(analysis.amount.average.transaction) > 0 ||
-           parseFloat(analysis.amount.average.month) > 0 || 
-           analysis.amount.stableMonths > 0;
-  };
+  const { analysis } = group;
   
+  return analysis.summary.transactionCount > 0 || 
+         parseFloat(analysis.amount.total) > 0 || 
+         parseFloat(analysis.amount.average.transaction) > 0 ||
+         parseFloat(analysis.amount.average.month) > 0 || 
+         analysis.amount.stableMonths > 0;
+};
 
-  const isMetricMeaningful = (metric: Metric) => {
-    const value = metric.result?.value;
-  
-    if (typeof value === "string") {
-      // Convert string to number for comparison
-      const numericValue = parseFloat(value);
-  
-      // Check if the string value is "0.00" or numeric value is 0
-      return value !== "0.00" && !(numericValue === 0 && !isNaN(numericValue));
-    } else if (typeof value === "number") {
-      // Directly check if the numeric value is 0
-      return value !== 0;
-    }
-  
-    // If the value is neither string nor number, exclude it
-    return false;
-  };
-  
-  
+const isMetricMeaningful = (metric: Metric) => {
+  const value = metric.result?.value;
+
+  if (typeof value === "string") {
+    const numericValue = parseFloat(value);
+    return value !== "0.00" && !(numericValue === 0 && !isNaN(numericValue));
+  } else if (typeof value === "number") {
+    return value !== 0;
+  }
+
+  return false;
+};
+
 export default function ReportPage() {
   const [data, setData] = useState<ReportData | null>(null);
 
@@ -173,13 +157,10 @@ export default function ReportPage() {
 
   const { filters, data: reportData } = data;
 
-    // Filter only the allowed metrics and check if they are meaningful
-    const filteredMetrics = reportData.metrics
+  const filteredMetrics = reportData.metrics
     .filter((metric) => allowedMetrics.includes(metric.id))
     .filter(isMetricMeaningful);
 
-
-  // Filter out groups with non-meaningful data
   const filteredGroups = reportData.groups
     .filter(group => allowedGroups.includes(group.id))
     .filter(isGroupMeaningful);
@@ -231,6 +212,42 @@ export default function ReportPage() {
             filteredGroups.map((group) => (
               <li key={group.id} className="mb-4">
                 <h4 className="text-lg font-semibold">{group.id} - {group.title}</h4>
+
+                {/* Accordion for Subgroups */}
+                {group.subgroup.map(subgroup => (
+                  <Accordion
+                    key={subgroup.id}
+                    title={subgroup.name}
+                    content={
+                      <>
+                        <h5 className="font-semibold">Transactions</h5>
+                        {subgroup.transactions.length > 0 ? (
+                          <table className="min-w-full divide-y divide-gray-200">
+                            <thead>
+                              <tr className="bg-gray-100">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                              {subgroup.transactions.map((transaction) => (
+                                <tr key={transaction.id}>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{transaction.date}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.description}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.amount}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        ) : (
+                          <p>No transactions available</p>
+                        )}
+                      </>
+                    }
+                  />
+                ))}
+
                 {/* Summary */}
                 <div className="mt-2">
                   <h5 className="font-semibold">Summary</h5>
@@ -244,17 +261,13 @@ export default function ReportPage() {
                     <p><strong>Debit Percentage:</strong> {group.analysis.summary.overallPercentage.debit}%</p>
                   )}
                 </div>
-                
+
                 {/* Range */}
                 <div className="mt-2">
                   <h5 className="font-semibold">Range</h5>
-                  {group.analysis.range.startDate && (
-                    <p><strong>Start Date:</strong> {group.analysis.range.startDate}</p>
-                  )}
-                  {group.analysis.range.endDate && (
-                    <p><strong>End Date:</strong> {group.analysis.range.endDate}</p>
-                  )}
-                  {group.analysis.range.duration !== 0 && (
+                  <p><strong>Start Date:</strong> {group.analysis.range.startDate}</p>
+                  <p><strong>End Date:</strong> {group.analysis.range.endDate}</p>
+                  {group.analysis.range.duration > 0 && (
                     <p><strong>Duration:</strong> {group.analysis.range.duration} days</p>
                   )}
                 </div>
@@ -262,64 +275,32 @@ export default function ReportPage() {
                 {/* Amount */}
                 <div className="mt-2">
                   <h5 className="font-semibold">Amount</h5>
-                  {group.analysis.amount.total !== "0.00" && (
-                    <p><strong>Total:</strong> {group.analysis.amount.total}</p>
+                  {parseFloat(group.analysis.amount.total) !== 0 && (
+                    <p><strong>Total Amount:</strong> {group.analysis.amount.total}</p>
                   )}
-                  {group.analysis.amount.min !== "0.00" && (
+                  {parseFloat(group.analysis.amount.min) !== 0 && (
                     <p><strong>Min Amount:</strong> {group.analysis.amount.min}</p>
                   )}
-                  {group.analysis.amount.max !== "0.00" && (
+                  {parseFloat(group.analysis.amount.max) !== 0 && (
                     <p><strong>Max Amount:</strong> {group.analysis.amount.max}</p>
                   )}
-                  {group.analysis.amount.average.transaction !== "0.00" && (
-                    <p><strong>Average Transaction:</strong> {group.analysis.amount.average.transaction}</p>
-                  )}
-                  {group.analysis.amount.average.month !== "0.00" && (
-                    <p><strong>Average Monthly Amount:</strong> {group.analysis.amount.average.month}</p>
-                  )}
-                  {group.analysis.amount.average.medianTransaction !== "0.00" && (
-                    <p><strong>Median Transaction:</strong> {group.analysis.amount.average.medianTransaction}</p>
-                  )}
-                  {group.analysis.amount.average.medianMonth !== "0.00" && (
-                    <p><strong>Median Monthly Amount:</strong> {group.analysis.amount.average.medianMonth}</p>
-                  )}
-                  {group.analysis.amount.average.ongoingMonth !== "0.00" && (
-                    <p><strong>Ongoing Month:</strong> {group.analysis.amount.average.ongoingMonth}</p>
-                  )}
-                  {group.analysis.amount.stableMonths !== 0 && (
-                    <p><strong>Stable Months:</strong> {group.analysis.amount.stableMonths}</p>
-                  )}
-                  {group.analysis.amount.secureMonths !== 0 && (
-                    <p><strong>Secure Months:</strong> {group.analysis.amount.secureMonths}</p>
+                  {parseFloat(group.analysis.amount.average.transaction) !== 0 && (
+                    <p><strong>Average Transaction Amount:</strong> {group.analysis.amount.average.transaction}</p>
                   )}
                 </div>
 
                 {/* Frequency */}
                 <div className="mt-2">
                   <h5 className="font-semibold">Frequency</h5>
-                  {group.analysis.frequency.type && group.analysis.frequency.type !== "NONE" && (
-                    <p><strong>Type:</strong> {group.analysis.frequency.type}</p>
-                  )}
-                  {group.analysis.frequency.amount && group.analysis.frequency.amount !== "NONE" && (
-                    <p><strong>Amount:</strong> {group.analysis.frequency.amount}</p>
-                  )}
-                  {group.analysis.frequency.display && group.analysis.frequency.display !== "NONE" && (
-                    <p><strong>Display:</strong> {group.analysis.frequency.display}</p>
-                  )}
-                  {group.analysis.frequency.next.date && group.analysis.frequency.next.date !== "NONE" && (
-                    <p><strong>Next Date:</strong> {group.analysis.frequency.next.date}</p>
-                  )}
-                  {group.analysis.frequency.next.amount && group.analysis.frequency.next.amount !== "NONE" && (
-                    <p><strong>Next Amount:</strong> {group.analysis.frequency.next.amount}</p>
-                  )}
-                  {group.analysis.frequency.subgroup && group.analysis.frequency.subgroup !== "NONE" && (
-                    <p><strong>Subgroup:</strong> {group.analysis.frequency.subgroup}</p>
-                  )}
+                  <p><strong>Type:</strong> {group.analysis.frequency.type}</p>
+                  <p><strong>Amount:</strong> {group.analysis.frequency.amount}</p>
+                  <p><strong>Next Date:</strong> {group.analysis.frequency.next.date}</p>
+                  <p><strong>Next Amount:</strong> {group.analysis.frequency.next.amount}</p>
                 </div>
               </li>
             ))
           ) : (
-            <li>No meaningful groups available</li>
+            <p>No groups available</p>
           )}
         </ul>
       </div>
