@@ -1,14 +1,13 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import axios from 'axios';
-import { FaBeer } from 'react-icons/fa';
 import { Button } from "@/components/ui/button";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { FaSpinner } from 'react-icons/fa';
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 const IncomeVerification = () => {
   const [title, setTitle] = useState<string>('');
@@ -16,15 +15,13 @@ const IncomeVerification = () => {
   const [toDate, setToDate] = useState<string>('');
   const [accounts, setAccounts] = useState<string>('');
   const [users, setUsers] = useState<string>('');
-  const [reportData, setReportData] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isPolling, setIsPolling] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [jobId, setJobId] = useState<string | null>(null);
 
-  //const token = process.env.NEXT_PUBLIC_BASI_Q_TOKEN;
+  const router = useRouter();
   const token = localStorage.getItem("BASI_Q_TOKEN");
-
 
   const POLLING_INTERVAL = 2000; // 2 seconds
   const MAX_ATTEMPTS = 30; // Adjust based on expected time for job completion
@@ -33,7 +30,6 @@ const IncomeVerification = () => {
     setIsLoading(true);
     setIsPolling(true);
     setError('');
-    setReportData('');
 
     const parsedAccounts = accounts.split(',').map(acc => acc.trim());
     const parsedUsers = users.split(',').map(user => user.trim());
@@ -52,7 +48,6 @@ const IncomeVerification = () => {
       }, {
         headers: {
           'accept': 'application/json, text/plain, */*',
-          'accept-language': 'en-GB,en-US;q=0.9,en;q=0.8',
           'authorization': `Bearer ${token}`,
           'content-type': 'application/json'
         }
@@ -96,7 +91,11 @@ const IncomeVerification = () => {
               }
             });
 
-            setReportData(JSON.stringify(reportResponse.data, null, 2));
+            // Save the report data in local storage
+            localStorage.setItem('reportData', JSON.stringify(reportResponse.data));
+
+            // Redirect to the new page
+            router.push('/report');
             setIsPolling(false);
             setIsLoading(false);
           } else if (jobStatus === 'failed') {
@@ -208,17 +207,6 @@ const IncomeVerification = () => {
             </div>
           )}
           {error && <p className="text-red-500 text-center mt-4">{error}</p>}
-          {reportData && (
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold text-gray-800">Verification Data</h3>
-              <Textarea
-                value={reportData}
-                readOnly
-                rows={20}
-                className="mt-2 w-full"
-              />
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>

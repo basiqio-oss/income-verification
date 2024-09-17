@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import PlaceholderContent from "@/components/demo/placeholder-content";
+import ReportHolderContent from "@/components/demo/report-content";
 import { ContentLayout } from "@/components/admin-panel/content-layout";
 import {
   Breadcrumb,
@@ -13,7 +13,7 @@ import {
 
 export default function CategoriesPage() {
   return (
-    <ContentLayout title="Categories">
+    <ContentLayout title="Report">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -29,11 +29,11 @@ export default function CategoriesPage() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Categories</BreadcrumbPage>
+            <BreadcrumbPage>Report</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <PlaceholderContent />
+      <ReportHolderContent />
     </ContentLayout>
   );
 }
