@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     const consentUrl = `https://consent.basiq.io/home?token=${clientAccessToken}&action=connect`;
 
     // Return the consent URL
-    return NextResponse.json({ consentUrl }, { status: 200 });
+    return NextResponse.json({ consentUrl, userId }, { status: 200 });
   } catch (error) {
     console.error('Error in server route:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

@@ -47,8 +47,14 @@ export default function HomePage() {
         }
       );
 
-      const { consentUrl } = userResponse.data;
-
+      const { consentUrl, userId } = userResponse.data;
+      console.log(consentUrl, userId);
+  
+      // Store the userId in localStorage
+      if (userId) {
+        localStorage.setItem("USER_ID", userId);
+      }
+  
       // Redirect to the consent URL
       if (consentUrl) {
         window.location.href = consentUrl;

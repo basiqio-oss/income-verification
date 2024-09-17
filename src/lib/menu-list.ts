@@ -83,7 +83,7 @@ export function getMenuList(pathname: string): Group[] {
       menus: [
         {
           href: "/users",
-          label: "Users",
+          label: "User",
           active: pathname.includes("/users"),
           icon: Users,
           submenus: []

@@ -15,7 +15,7 @@ const IncomeVerification = () => {
       setError('');
 
       const token = localStorage.getItem("BASI_Q_TOKEN");
-      const userId = localStorage.getItem("USER_ID") || '6cf4f2d3-9432-4a29-a540-1040f53c43fe'; // Ensure USER_ID is stored in localStorage
+      const userId = localStorage.getItem("USER_ID"); // Ensure USER_ID is stored in localStorage
 
       if (!token || !userId) {
         setError('Token or User ID not found');
