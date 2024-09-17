@@ -1,4 +1,4 @@
-"use client"; // Add this line at the top
+"use client"; // Ensure this file runs in the client context
 
 import Link from "next/link";
 import PlaceholderContent from "@/components/demo/placeholder-content";
@@ -24,7 +24,7 @@ import {
 
 export default function DashboardPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [jobDetails, setJobDetails] = useState<any>(null); // Add state to store job details
+  const [jobDetails, setJobDetails] = useState<any>(null); // State to store job details
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,19 +32,15 @@ export default function DashboardPage() {
     // Retrieve the email and token from local storage on the client side
     const email = localStorage.getItem("USER_EMAIL");
     const token = localStorage.getItem("BASI_Q_TOKEN");
-    setUserEmail(email);
+    setUserEmail(email || null);
 
     // Extract jobId from URL query parameters
     const urlParams = new URLSearchParams(window.location.search);
     const jobId = urlParams.get('jobId');
-
+    
     if (jobId && token) {
       setLoading(true);
-      axios.get(`/api/get-job?jobId=${jobId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
+      axios.get(`/api/get-job?jobId=${jobId}&token=${token}`) // Pass token as query parameter
         .then(response => {
           setJobDetails(response.data);
           setLoading(false);
@@ -124,13 +120,6 @@ export default function DashboardPage() {
                   <CardTitle>Step: {step.title}</CardTitle>
                   <CardDescription>Status: {step.status}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  {step.result.type === 'link' && (
-                    <p>
-                      <strong>URL:</strong> <Link href={step.result.url} target="_blank" rel="noopener noreferrer">{step.result.url}</Link>
-                    </p>
-                  )}
-                </CardContent>
               </Card>
             ))}
           </div>

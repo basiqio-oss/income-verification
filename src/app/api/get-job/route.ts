@@ -9,6 +9,7 @@ export async function GET(req: NextRequest) {
     const jobId = searchParams.get('jobId');
     const token = searchParams.get('token'); // Extract token from query parameters
 
+    console.log(jobId);
     if (!jobId || !token) {
       return NextResponse.json({ error: 'Job ID and token are required' }, { status: 400 });
     }
