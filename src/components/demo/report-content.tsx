@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Accordion from "../Accordion"; // Adjust the import path as necessary
+import Accordion from "../Accordion";
+import BarChart from "@/components/BarChart";
+import PieChart from "@/components/PieChart";
+
 
 interface Filter {
   name: string;
@@ -165,6 +168,17 @@ export default function ReportPage() {
     .filter(group => allowedGroups.includes(group.id))
     .filter(isGroupMeaningful);
 
+  // Prepare data for charts
+  const metricChartData = {
+    labels: filteredMetrics.map((metric) => metric.title),
+    values: filteredMetrics.map((metric) => parseFloat(metric.result?.value || '0')),
+  };
+
+  const groupChartData = {
+    labels: filteredGroups.map((group) => group.title),
+    values: filteredGroups.map((group) => parseFloat(group.analysis.amount.total)),
+  };
+
   return (
     <div className="p-4">
       <h2 className="text-2xl font-bold">Report Details</h2>
@@ -185,6 +199,11 @@ export default function ReportPage() {
       {/* Metrics Section */}
       <div className="mt-4">
         <h3 className="text-xl font-semibold">Metrics</h3>
+        <div className="chart-container">
+          {metricChartData.labels.length > 0 && (
+            <BarChart labels={metricChartData.labels} values={metricChartData.values} width={600} height={500} />
+          )}
+        </div>
         <ul>
           {filteredMetrics.map((metric) => (
             <li key={metric.id} className="mb-4">
@@ -207,14 +226,26 @@ export default function ReportPage() {
       {/* Groups Section */}
       <div className="mt-4">
         <h3 className="text-xl font-semibold">Groups</h3>
+        <div className="chart-container" style={{ width: '600px', height: '400px' }}>
+          {groupChartData.labels.length > 0 && (
+            <PieChart labels={groupChartData.labels} values={groupChartData.values} width={600} height={400} />
+          )}
+        </div>
         <ul>
-          {filteredGroups.length > 0 ? (
-            filteredGroups.map((group) => (
-              <li key={group.id} className="mb-4">
-                <h4 className="text-lg font-semibold">{group.id} - {group.title}</h4>
-
-                {/* Accordion for Subgroups */}
-                {group.subgroup.map(subgroup => (
+          {filteredGroups.map((group) => (
+            <li key={group.id} className="mb-4">
+              <h4 className="text-lg font-semibold">{group.id} - {group.title}</h4>
+              <p>{group.sections.join(", ")}</p>
+              <p>
+                <strong>Analysis Summary:</strong>
+              </p>
+              <ul>
+                <li><strong>Transaction Count:</strong> {group.analysis.summary.transactionCount}</li>
+                <li><strong>Overall Credit Percentage:</strong> {group.analysis.summary.overallPercentage.credit}%</li>
+                <li><strong>Overall Debit Percentage:</strong> {group.analysis.summary.overallPercentage.debit}%</li>
+              </ul>
+            {/* Accordion for Subgroups */}
+            {group.subgroup.map(subgroup => (
                   <Accordion
                     key={subgroup.id}
                     title={subgroup.name}
@@ -248,60 +279,8 @@ export default function ReportPage() {
                   />
                 ))}
 
-                {/* Summary */}
-                <div className="mt-2">
-                  <h5 className="font-semibold">Summary</h5>
-                  {group.analysis.summary.transactionCount !== 0 && (
-                    <p><strong>Transaction Count:</strong> {group.analysis.summary.transactionCount}</p>
-                  )}
-                  {group.analysis.summary.overallPercentage.credit !== 0 && (
-                    <p><strong>Credit Percentage:</strong> {group.analysis.summary.overallPercentage.credit}%</p>
-                  )}
-                  {group.analysis.summary.overallPercentage.debit !== 0 && (
-                    <p><strong>Debit Percentage:</strong> {group.analysis.summary.overallPercentage.debit}%</p>
-                  )}
-                </div>
-
-                {/* Range */}
-                <div className="mt-2">
-                  <h5 className="font-semibold">Range</h5>
-                  <p><strong>Start Date:</strong> {group.analysis.range.startDate}</p>
-                  <p><strong>End Date:</strong> {group.analysis.range.endDate}</p>
-                  {group.analysis.range.duration > 0 && (
-                    <p><strong>Duration:</strong> {group.analysis.range.duration} days</p>
-                  )}
-                </div>
-
-                {/* Amount */}
-                <div className="mt-2">
-                  <h5 className="font-semibold">Amount</h5>
-                  {parseFloat(group.analysis.amount.total) !== 0 && (
-                    <p><strong>Total Amount:</strong> {group.analysis.amount.total}</p>
-                  )}
-                  {parseFloat(group.analysis.amount.min) !== 0 && (
-                    <p><strong>Min Amount:</strong> {group.analysis.amount.min}</p>
-                  )}
-                  {parseFloat(group.analysis.amount.max) !== 0 && (
-                    <p><strong>Max Amount:</strong> {group.analysis.amount.max}</p>
-                  )}
-                  {parseFloat(group.analysis.amount.average.transaction) !== 0 && (
-                    <p><strong>Average Transaction Amount:</strong> {group.analysis.amount.average.transaction}</p>
-                  )}
-                </div>
-
-                {/* Frequency */}
-                <div className="mt-2">
-                  <h5 className="font-semibold">Frequency</h5>
-                  <p><strong>Type:</strong> {group.analysis.frequency.type}</p>
-                  <p><strong>Amount:</strong> {group.analysis.frequency.amount}</p>
-                  <p><strong>Next Date:</strong> {group.analysis.frequency.next.date}</p>
-                  <p><strong>Next Amount:</strong> {group.analysis.frequency.next.amount}</p>
-                </div>
-              </li>
-            ))
-          ) : (
-            <p>No groups available</p>
-          )}
+            </li>
+          ))}
         </ul>
       </div>
     </div>
