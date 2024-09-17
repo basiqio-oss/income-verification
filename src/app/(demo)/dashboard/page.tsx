@@ -1,4 +1,4 @@
-"use client"; // Ensure this file runs in the client context
+"use client"; // Add this line at the top
 
 import Link from "next/link";
 import PlaceholderContent from "@/components/demo/placeholder-content";
@@ -24,26 +24,29 @@ import {
 
 export default function DashboardPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [jobDetails, setJobDetails] = useState<any>(null); // State to store job details
+  const [jobDetails, setJobDetails] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<number>(0);
 
   useEffect(() => {
-    // Retrieve the email and token from local storage on the client side
     const email = localStorage.getItem("USER_EMAIL");
     const token = localStorage.getItem("BASI_Q_TOKEN");
     setUserEmail(email || null);
-
-    // Extract jobId from URL query parameters
     const urlParams = new URLSearchParams(window.location.search);
     const jobId = urlParams.get('jobId');
-    
     if (jobId && token) {
       setLoading(true);
-      axios.get(`/api/get-job?jobId=${jobId}&token=${token}`) // Pass token as query parameter
+      const interval = setInterval(() => {
+        setProgress((prev) => (prev < 100 ? prev + 1 : 100));
+      }, 100);
+
+      axios.get(`/api/get-job?jobId=${jobId}&token=${token}`)
         .then(response => {
           setJobDetails(response.data);
+          setProgress(100);
           setLoading(false);
+          clearInterval(interval);
         })
         .catch(err => {
           if (axios.isAxiosError(err)) {
@@ -54,6 +57,7 @@ export default function DashboardPage() {
             setError('Failed to fetch job details: An unexpected error occurred.');
           }
           setLoading(false);
+          clearInterval(interval);
         });
     } else {
       if (!jobId) {
@@ -84,7 +88,6 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-bold mb-4">
           Welcome{userEmail ? `, ${userEmail}` : ''}
         </h1>
-        {/* Instructions for using the income verification feature */}
         <div className="mt-6 p-4">
           <h2 className="text-xl font-semibold mb-2">Income Verification Instructions</h2>
           <p className="mb-2">
@@ -96,10 +99,33 @@ export default function DashboardPage() {
             <li>Use these IDs to create the report.</li>
           </ol>
         </div>
-        {loading && <p>Loading job details...</p>}
+        {loading && (
+          <div className="mt-4">
+            <div className="relative pt-1">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded text-teal-600 bg-teal-200">
+                  Loading
+                </div>
+                <div className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded text-teal-600 bg-teal-200">
+                  {progress}%
+                </div>
+              </div>
+              <div className="relative flex mb-2 items-center justify-between">
+                <div className="w-full bg-gray-200 rounded-full">
+                  <div
+                    className="bg-teal-500 text-xs font-medium text-teal-100 text-center p-0.5 leading-none rounded-l-full"
+                    style={{ width: `${progress}%` }}
+                  >
+                    &nbsp;
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         {error && <p className="text-red-500">{error}</p>}
         {jobDetails && (
-          <div className="mt-6 p-4 space-y-4">
+          <div className="rounded-xl border bg-card text-card-foreground w-full max-w-3xl shadow-lg">
             <Card>
               <CardHeader>
                 <CardTitle>Job ID</CardTitle>
@@ -124,6 +150,7 @@ export default function DashboardPage() {
             ))}
           </div>
         )}
+        <p>&nbsp;</p>
         <PlaceholderContent />
       </div>
     </ContentLayout>
