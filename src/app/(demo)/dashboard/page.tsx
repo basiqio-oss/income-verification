@@ -49,6 +49,11 @@ interface UserDetail {
   };
 }
 
+interface UserDetailSubset {
+  email: string;
+  createdTime: string;
+}
+
 export default function DashboardPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [jobDetails, setJobDetails] = useState<any>(null);
@@ -77,6 +82,7 @@ export default function DashboardPage() {
           setProgress((prev) => (prev < 100 ? prev + 1 : 100));
         }, 100);
 
+        // Fetch job details
         axios.get(`/api/get-job?jobId=${jobId}&token=${token}`)
           .then(response => {
             setJobDetails(response.data);
@@ -84,32 +90,32 @@ export default function DashboardPage() {
             setLoading(false);
             clearInterval(interval);
 
+            // Prepare bar chart data
             setBarChartData({
               labels: response.data.steps.map((step: any) => step.title),
               datasets: [
                 {
                   label: 'Step Status',
                   data: response.data.steps.map((step: any) => step.status === 'success' ? 1 : 0),
-                  backgroundColor: response.data.steps.map((step: any) => step.status === 'success' ? 'rgba(75, 192, 192, 0.2)' : 'rgba(255, 99, 132, 0.2)'),
-                  borderColor: response.data.steps.map((step: any) => step.status === 'success' ? 'rgba(75, 192, 192, 1)' : 'rgba(255, 99, 132, 1)'),
+                  backgroundColor: response.data.steps.map((step: any) =>
+                    step.status === 'success' ? 'rgba(75, 192, 192, 0.2)' : 'rgba(255, 99, 132, 0.2)'
+                  ),
+                  borderColor: response.data.steps.map((step: any) =>
+                    step.status === 'success' ? 'rgba(75, 192, 192, 1)' : 'rgba(255, 99, 132, 1)'
+                  ),
                   borderWidth: 1,
                 },
               ],
             });
-
           })
           .catch(err => {
-            if (axios.isAxiosError(err)) {
-              console.error('API request error:', err.response?.data || err.message || err);
-              setError('Failed to fetch job details: ' + (err.response?.data?.error || err.message || 'Unknown error'));
-            } else {
-              console.error('Unexpected error:', err);
-              setError('Failed to fetch job details: An unexpected error occurred.');
-            }
+            console.error('API request error:', err);
+            setError('Failed to fetch job details: ' + (err.response?.data?.error || err.message || 'Unknown error'));
             setLoading(false);
             clearInterval(interval);
           });
 
+        // Fetch users
         axios.get('https://au-api.basiq.io/users', {
           headers: {
             'accept': 'application/json',
@@ -121,8 +127,7 @@ export default function DashboardPage() {
             setUsers(usersData);
 
             // Aggregate user creation dates
-            const dateCounts: { [key: string]: { count: number, details: UserDetail[] } } = {};
-            
+            const dateCounts: { [key: string]: { count: number, details: UserDetailSubset[] } } = {};
             usersData.forEach((user: UserDetail) => {
               const date = new Date(user.createdTime).toISOString().split('T')[0];
               if (!dateCounts[date]) {
@@ -156,7 +161,6 @@ export default function DashboardPage() {
             console.error('Failed to fetch users:', err);
             setError('Failed to fetch users: ' + (err.response?.data?.error || err.message || 'Unknown error'));
           });
-
       } else {
         setError('Token is missing');
       }
@@ -270,14 +274,14 @@ export default function DashboardPage() {
                         return date;
                       },
                       label: (tooltipItem) => {
-                        const rawData = (tooltipItem as { raw: { details?: UserDetail[] } }).raw;
+                        const rawData = (tooltipItem as { raw: { details?: UserDetailSubset[] } }).raw;
                         const details = rawData.details || [];
                         const numberOfUsers = details.length;
                         const emails = details.slice(0, 3).map(detail => detail.email).join(', ');
                         return `Users (${numberOfUsers}): ${emails}${numberOfUsers > 3 ? '...' : ''}`;
                       },
                       footer: (tooltipItems) => {
-                        const rawData = (tooltipItems[0] as { raw: { details?: UserDetail[] } }).raw;
+                        const rawData = (tooltipItems[0] as { raw: { details?: UserDetailSubset[] } }).raw;
                         const details = rawData.details || [];
                         return details.slice(0, 3).map(detail => `Created Time: ${new Date(detail.createdTime).toLocaleString()}`).join('\n') + (details.length > 3 ? '\n...' : '');
                       }
