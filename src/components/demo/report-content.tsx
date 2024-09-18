@@ -196,11 +196,6 @@ export default function ReportPage() {
       {/* Metrics Section */}
       <div className="mb-8">
         <h3 className="text-2xl font-semibold mb-4">Metrics</h3>
-        <div className="chart-container mb-6">
-          {metricChartData.labels.length > 0 && (
-            <BarChart labels={metricChartData.labels} values={metricChartData.values} width={600} height={500} />
-          )}
-        </div>
         <ul className="space-y-6">
           {filteredMetrics.map((metric) => (
             <li key={metric.id} className="p-6 border border-gray-300 rounded-lg shadow-md bg-white">
@@ -220,30 +215,58 @@ export default function ReportPage() {
         </ul>
       </div>
 
-      {/* Groups Section */}
-      <div className="mb-8">
-        <h3 className="text-2xl font-semibold mb-4">Groups</h3>
-        <div className="chart-container mb-6">
-          {groupChartData.labels.length > 0 && (
-            <BarChart labels={groupChartData.labels} values={groupChartData.values} width={600} height={400} />
-          )}
-        </div>
-        <ul className="space-y-6">
-          {filteredGroups.map((group) => (
-            <li key={group.id} className="p-6 border border-gray-300 rounded-lg shadow-md bg-white">
-              <h4 className="text-xl font-semibold mb-2">{group.id} - {group.title}</h4>
-              <p className="text-gray-700 mb-2">
-                <strong>Sections:</strong> {group.sections.join(", ")}
-              </p>
-              <div className="mt-4">
-                <h5 className="font-semibold mb-2">Analysis Summary</h5>
-                <ul className="list-disc list-inside text-gray-700 space-y-1">
-                  <li><strong>Transaction Count:</strong> {group.analysis.summary.transactionCount}</li>
-                  <li><strong>Overall Credit Percentage:</strong> {group.analysis.summary.overallPercentage.credit}%</li>
-                  <li><strong>Overall Debit Percentage:</strong> {group.analysis.summary.overallPercentage.debit}%</li>
-                </ul>
-              </div>
-              <p>&nbsp;</p>
+    {/* Groups Section */}
+    <div className="mb-8">
+      <h3 className="text-2xl font-semibold mb-4">Groups</h3>
+      <div className="chart-container mb-6">
+        {groupChartData.labels.length > 0 && (
+          <BarChart labels={groupChartData.labels} values={groupChartData.values} width={600} height={400} />
+        )}
+      </div>
+      <ul className="space-y-6">
+        {filteredGroups.map((group) => (
+          <li key={group.id} className="p-6 border border-gray-300 rounded-lg shadow-md bg-white">
+            <h4 className="text-xl font-semibold mb-2">{group.id} - {group.title}</h4>
+            <p className="text-gray-700 mb-2">
+              <strong>Sections:</strong> {group.sections.join(", ")}
+            </p>
+
+            {/* Range Section */}
+            <div className="mt-4">
+              <h5 className="font-semibold mb-2">Range</h5>
+              <ul className="list-disc list-inside text-gray-700 space-y-1">
+                <li><strong>Start Date:</strong> {group.analysis.range.startDate}</li>
+                <li><strong>End Date:</strong> {group.analysis.range.endDate}</li>
+                <li><strong>Duration:</strong> {group.analysis.range.duration} days</li>
+              </ul>
+            </div>
+
+            {/* Amount Section */}
+            <div className="mt-4">
+              <h5 className="font-semibold mb-2">Amount</h5>
+              <ul className="list-disc list-inside text-gray-700 space-y-1">
+                <li><strong>Total:</strong> {group.analysis.amount.total}</li>
+                <li><strong>Min:</strong> {group.analysis.amount.min}</li>
+                <li><strong>Max:</strong> {group.analysis.amount.max}</li>
+                <li><strong>Average Transaction:</strong> {group.analysis.amount.average.transaction}</li>
+                <li><strong>Average Per Month:</strong> {group.analysis.amount.average.month}</li>
+                <li><strong>Stable Months:</strong> {group.analysis.amount.stableMonths}</li>
+                <li><strong>Secure Months:</strong> {group.analysis.amount.secureMonths}</li>
+              </ul>
+            </div>
+
+            {/* Frequency Section */}
+            <div className="mt-4">
+              <h5 className="font-semibold mb-2">Frequency</h5>
+              <ul className="list-disc list-inside text-gray-700 space-y-1">
+                <li><strong>Type:</strong> {group.analysis.frequency.type}</li>
+                <li><strong>Amount:</strong> {group.analysis.frequency.amount}</li>
+                <li><strong>Next Date:</strong> {group.analysis.frequency.next.date}</li>
+                <li><strong>Next Amount:</strong> {group.analysis.frequency.next.amount}</li>
+                <li><strong>Subgroup:</strong> {group.analysis.frequency.subgroup}</li>
+              </ul>
+            </div>
+          <p> &nbsp;</p>
             {/* Accordion for Subgroups */}
             {group.subgroup.map(subgroup => (
               <Accordion
@@ -278,11 +301,11 @@ export default function ReportPage() {
                 }
               />
             ))}
+          </li>
+        ))}
+      </ul>
+    </div>
 
-            </li>
-          ))}
-        </ul>
-      </div>
     </div>
   );
 }
