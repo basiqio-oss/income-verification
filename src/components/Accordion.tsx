@@ -11,15 +11,21 @@ const Accordion: React.FC<AccordionProps> = ({ title, content }) => {
   const toggle = () => setIsOpen(!isOpen);
 
   return (
-    <div className="border rounded mb-2">
-      <button
-        className="w-full px-4 py-2 text-left font-semibold bg-gray-200 hover:bg-gray-300"
+    <div className="border rounded mb-4 overflow-hidden">
+     <button
+        className={`w-full px-4 py-2 text-left font-semibold transition-colors 
+          bg-gray-200 hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700
+          ${isOpen ? 'bg-gray-300 dark:bg-gray-700' : 'bg-gray-200 dark:bg-gray-800'}
+          text-gray-800 dark:text-gray-200`}
         onClick={toggle}
       >
-        {title}
+        <span className="flex items-center">
+          <span className="flex-grow">{title}</span>
+          <span className="ml-2 text-lg font-bold">{isOpen ? '−' : '+'}</span>
+        </span>
       </button>
       {isOpen && (
-        <div className="p-4">
+        <div className="p-4 bg-gray-50">
           {content}
         </div>
       )}

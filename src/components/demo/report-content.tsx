@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import Accordion from "../Accordion";
 import BarChart from "@/components/BarChart";
-import PieChart from "@/components/PieChart";
-
 
 interface Filter {
   name: string;
@@ -96,34 +94,23 @@ interface ReportData {
 }
 
 const allowedMetrics = [
-  "ME001",
-  "ME002",
-  "ME003",
-  "ME004",
-  "ME022",
-  "ME033",
-  "ME035",
-  "ME036",
-  "ME037",
-  "ME040",
-  "ME042",
-  "ME043",
-  "ME045",
+  "ME001", "ME002", "ME003", "ME004", "ME022", "ME033", "ME035", "ME036", "ME037",
+  "ME040", "ME042", "ME043", "ME045",
 ];
 
 const allowedGroups = [
-  "INC-001", "INC-002", "INC-003", "INC-004", "INC-005", "INC-006", "INC-007", "INC-008",
-  "INC-009", "INC-010", "INC-012", "INC-013", "INC-014", "INC-015", "INC-016", "INC-018",
-  "INC-019", "INC-020", "INC-021"
+  "INC-001", "INC-002", "INC-003", "INC-004", "INC-005", "INC-006", "INC-007",
+  "INC-008", "INC-009", "INC-010", "INC-012", "INC-013", "INC-014", "INC-015",
+  "INC-016", "INC-018", "INC-019", "INC-020", "INC-021"
 ];
 
 const isGroupMeaningful = (group: Group) => {
   const { analysis } = group;
-  
-  return analysis.summary.transactionCount > 0 || 
-         parseFloat(analysis.amount.total) > 0 || 
+
+  return analysis.summary.transactionCount > 0 ||
+         parseFloat(analysis.amount.total) > 0 ||
          parseFloat(analysis.amount.average.transaction) > 0 ||
-         parseFloat(analysis.amount.average.month) > 0 || 
+         parseFloat(analysis.amount.average.month) > 0 ||
          analysis.amount.stableMonths > 0;
 };
 
@@ -180,42 +167,52 @@ export default function ReportPage() {
   };
 
   return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold">Report Details</h2>
+    <div className="p-6 min-h-screen">
+      <h2 className="text-3xl font-bold mb-6">Report Details</h2>
 
       {/* Filters Section */}
-      <div className="mt-4">
-        <h3 className="text-xl font-semibold">Filters</h3>
-        <ul>
-          {filters.map((filter, index) => (
-            <li key={index}>
-              <strong>{filter.name}:</strong>{" "}
-              {Array.isArray(filter.value) ? filter.value.join(", ") : filter.value}
-            </li>
-          ))}
-        </ul>
+      <div className="mb-8">
+        <h3 className="text-2xl font-semibold mb-4">Filters</h3>
+        <div className="bg-white shadow-lg rounded-lg p-6">
+          <ul className="space-y-6">
+            {filters.map((filter, index) => (
+              <li key={index} className="flex flex-col space-y-2">
+                <span className="font-medium text-gray-800 text-lg">{filter.name}:</span>
+                <div className="text-gray-600 text-base">
+                  {Array.isArray(filter.value) ? (
+                    filter.value.map((item, i) => (
+                      <div key={i} className="mb-1 break-words">{item}</div>
+                    ))
+                  ) : (
+                    <div className="break-words">{filter.value}</div>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
 
       {/* Metrics Section */}
-      <div className="mt-4">
-        <h3 className="text-xl font-semibold">Metrics</h3>
-        <div className="chart-container">
+      <div className="mb-8">
+        <h3 className="text-2xl font-semibold mb-4">Metrics</h3>
+        <div className="chart-container mb-6">
           {metricChartData.labels.length > 0 && (
             <BarChart labels={metricChartData.labels} values={metricChartData.values} width={600} height={500} />
           )}
         </div>
-        <ul>
+        <ul className="space-y-6">
           {filteredMetrics.map((metric) => (
-            <li key={metric.id} className="mb-4">
-              <h4 className="text-lg font-semibold">{metric.id} - {metric.title}</h4>
-              <p>{metric.description}</p>
+            <li key={metric.id} className="p-6 border border-gray-300 rounded-lg shadow-md bg-white">
+              <h4 className="text-xl font-semibold mb-2">{metric.id} - {metric.title}</h4>
+              <p className="text-gray-700 mb-2">{metric.description}</p>
               {metric.result && (
-                <p>
+                <p className="text-gray-700 mb-2">
                   <strong>Result:</strong> {metric.result.value}{" "}
                   {metric.result.format === "money" ? "USD" : ""}
                 </p>
               )}
-              <p>
+              <p className="text-gray-700">
                 <strong>Sections:</strong> {metric.sections.join(", ")}
               </p>
             </li>
@@ -224,60 +221,63 @@ export default function ReportPage() {
       </div>
 
       {/* Groups Section */}
-      <div className="mt-4">
-        <h3 className="text-xl font-semibold">Groups</h3>
-        <div className="chart-container" style={{ width: '600px', height: '400px' }}>
+      <div className="mb-8">
+        <h3 className="text-2xl font-semibold mb-4">Groups</h3>
+        <div className="chart-container mb-6">
           {groupChartData.labels.length > 0 && (
-            <PieChart labels={groupChartData.labels} values={groupChartData.values} width={600} height={400} />
+            <BarChart labels={groupChartData.labels} values={groupChartData.values} width={600} height={400} />
           )}
         </div>
-        <ul>
+        <ul className="space-y-6">
           {filteredGroups.map((group) => (
-            <li key={group.id} className="mb-4">
-              <h4 className="text-lg font-semibold">{group.id} - {group.title}</h4>
-              <p>{group.sections.join(", ")}</p>
-              <p>
-                <strong>Analysis Summary:</strong>
+            <li key={group.id} className="p-6 border border-gray-300 rounded-lg shadow-md bg-white">
+              <h4 className="text-xl font-semibold mb-2">{group.id} - {group.title}</h4>
+              <p className="text-gray-700 mb-2">
+                <strong>Sections:</strong> {group.sections.join(", ")}
               </p>
-              <ul>
-                <li><strong>Transaction Count:</strong> {group.analysis.summary.transactionCount}</li>
-                <li><strong>Overall Credit Percentage:</strong> {group.analysis.summary.overallPercentage.credit}%</li>
-                <li><strong>Overall Debit Percentage:</strong> {group.analysis.summary.overallPercentage.debit}%</li>
-              </ul>
+              <div className="mt-4">
+                <h5 className="font-semibold mb-2">Analysis Summary</h5>
+                <ul className="list-disc list-inside text-gray-700 space-y-1">
+                  <li><strong>Transaction Count:</strong> {group.analysis.summary.transactionCount}</li>
+                  <li><strong>Overall Credit Percentage:</strong> {group.analysis.summary.overallPercentage.credit}%</li>
+                  <li><strong>Overall Debit Percentage:</strong> {group.analysis.summary.overallPercentage.debit}%</li>
+                </ul>
+              </div>
+              <p>&nbsp;</p>
             {/* Accordion for Subgroups */}
             {group.subgroup.map(subgroup => (
-                  <Accordion
-                    key={subgroup.id}
-                    title={subgroup.name}
-                    content={
-                      <>
-                        <h5 className="font-semibold">Transactions</h5>
-                        {subgroup.transactions.length > 0 ? (
-                          <table className="min-w-full divide-y divide-gray-200">
-                            <thead>
-                              <tr className="bg-gray-100">
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                              </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                              {subgroup.transactions.map((transaction) => (
-                                <tr key={transaction.id}>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{transaction.date}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.description}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.amount}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        ) : (
-                          <p>No transactions available</p>
-                        )}
-                      </>
-                    }
-                  />
-                ))}
+              <Accordion
+                key={subgroup.id}
+                title={subgroup.name}
+                content={
+                  <>
+                    <h5 className="font-semibold text-lg mb-2">Transactions</h5>
+                    {subgroup.transactions.length > 0 ? (
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead>
+                          <tr className="bg-gray-100">
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {subgroup.transactions.map(transaction => (
+                            <tr key={transaction.id}>
+                              <td className="px-4 py-2 text-sm text-gray-500">{transaction.date}</td>
+                              <td className="px-4 py-2 text-sm text-gray-500">{transaction.description}</td>
+                              <td className="px-4 py-2 text-sm text-gray-500">{transaction.amount}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <p className="text-gray-500 mt-2">No transactions available.</p>
+                    )}
+                  </>
+                }
+              />
+            ))}
 
             </li>
           ))}
