@@ -149,7 +149,7 @@ const IncomeVerification = () => {
           <div className="mb-4">
             <input
               type="file"
-              accept=".pdf"
+              accept=".pdf,.csv"
               onChange={handleFileChange}
               className="block w-full mb-4"
             />
