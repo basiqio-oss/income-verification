@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ClipLoader } from 'react-spinners';
-import { useRouter } from 'next/navigation'; // Import useRouter
+import { useRouter } from 'next/navigation';
+import { Select, MenuItem, Avatar, ListItemText } from '@mui/material'; // For dropdown and avatar
 
 const IncomeVerification = () => {
   const [statementFile, setStatementFile] = useState<File | null>(null);
@@ -14,10 +15,33 @@ const IncomeVerification = () => {
   const [uploadSuccess, setUploadSuccess] = useState<string>('');
   const [jobStatus, setJobStatus] = useState<string>('');
   const [polling, setPolling] = useState<boolean>(false);
-  const [userInfo, setUserInfo] = useState<any>(null);
-  const [accountsInfo, setAccountsInfo] = useState<any[]>([]);
+  const [institutions, setInstitutions] = useState<any[]>([]);
+  const router = useRouter();
 
-  const router = useRouter(); // Initialize useRouter
+  useEffect(() => {
+    const fetchInstitutions = async () => {
+      const token = localStorage.getItem("BASI_Q_TOKEN");
+
+      if (!token) {
+        setUploadError('Token not found');
+        return;
+      }
+
+      try {
+        const response = await axios.get('https://au-api.basiq.io/institutions', {
+          headers: {
+            'accept': 'application/json',
+            'authorization': `Bearer ${token}`,
+          },
+        });
+        setInstitutions(response.data.data); // Set the list of banks
+      } catch (err) {
+        setUploadError('Failed to fetch institutions');
+      }
+    };
+
+    fetchInstitutions();
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -27,7 +51,7 @@ const IncomeVerification = () => {
 
   const handleUpload = async () => {
     if (!statementFile || !institutionId) {
-      setUploadError('Please provide both a statement file and institution ID.');
+      setUploadError('Please provide both a statement file and select an institution.');
       return;
     }
 
@@ -61,18 +85,14 @@ const IncomeVerification = () => {
 
       if (response.status === 202 && response.data.type === 'job') {
         const jobId = response.data.id;
-       setJobStatus('Polling for job status...');
+        setJobStatus('Polling for job status...');
         setPolling(true);
         pollJobStatus(jobId);
       } else {
         setUploadError(`Unexpected response: ${JSON.stringify(response.data)}`);
       }
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        setUploadError(`Failed to upload statement: ${err.response?.data?.error || err.message}`);
-      } else {
-        setUploadError(`Failed to upload statement: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      }
+      setUploadError(`Failed to upload statement`);
     } finally {
       setUploading(false);
     }
@@ -96,8 +116,6 @@ const IncomeVerification = () => {
           },
         });
 
-        console.log('Job status response:', response.data); // Debugging
-
         const { steps } = response.data;
         const allStepsSuccessful = steps.every((step: any) => step.status === 'success');
 
@@ -106,10 +124,6 @@ const IncomeVerification = () => {
           setPolling(false);
           clearInterval(intervalId);
 
-          // Fetch user and account information from job result
-          fetchJobResults(steps);
-
-          // Redirect to income page
           router.push('/income');
         } else if (response.data.status === 'failed') {
           setJobStatus('Job Failed');
@@ -117,53 +131,11 @@ const IncomeVerification = () => {
           clearInterval(intervalId);
         }
       } catch (err) {
-        if (axios.isAxiosError(err)) {
-          setUploadError(`Failed to fetch job status: ${err.response?.data?.error || err.message}`);
-        } else {
-          setUploadError(`Failed to fetch job status: ${err instanceof Error ? err.message : 'Unknown error'}`);
-        }
+        setUploadError(`Failed to fetch job status`);
         setPolling(false);
         clearInterval(intervalId);
       }
-    }, 2000); // Poll every 2 seconds
-  };
-
-  const fetchJobResults = async (steps: any[]) => {
-    const token = localStorage.getItem("BASI_Q_TOKEN");
-
-    if (!token) {
-      setUploadError('Token not found');
-      return;
-    }
-
-    try {
-      // Fetch user info from the first step URL
-      const userResponse = await axios.get(`https://au-api.basiq.io${steps[1].result.url}`, {
-        headers: {
-          'accept': 'application/json',
-          'authorization': `Bearer ${token}`,
-        },
-      });
-
-      setUserInfo(userResponse.data);
-
-      // Fetch account info from the second step URL
-      const accountsResponse = await axios.get(`https://au-api.basiq.io${steps[2].result.url}`, {
-        headers: {
-          'accept': 'application/json',
-          'authorization': `Bearer ${token}`,
-        },
-      });
-
-      setAccountsInfo(accountsResponse.data);
-
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        setUploadError(`Failed to fetch job results: ${err.response?.data?.error || err.message}`);
-      } else {
-        setUploadError(`Failed to fetch job results: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      }
-    }
+    }, 2000);
   };
 
   return (
@@ -181,13 +153,45 @@ const IncomeVerification = () => {
               onChange={handleFileChange}
               className="block w-full mb-4"
             />
-            <input
-              type="text"
-              placeholder="Institution ID"
+            
+            {/* Dropdown with Bank Logos */}
+            <Select
               value={institutionId}
-              onChange={(e) => setInstitutionId(e.target.value)}
-              className="block w-full mb-4 p-2 border rounded"
-            />
+              onChange={(e) => setInstitutionId(e.target.value as string)}
+              displayEmpty
+              className="w-full mb-4"
+              renderValue={(selected) => {
+                if (!selected) {
+                  return <em>Select Institution</em>;
+                }
+                const selectedInstitution = institutions.find(inst => inst.id === selected);
+                return (
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <Avatar
+                      alt={selectedInstitution?.shortName}
+                      src={selectedInstitution?.logo?.links?.square}
+                      sx={{ width: 24, height: 24, marginRight: 1 }}
+                    />
+                    <span>{selectedInstitution?.shortName || selectedInstitution?.name}</span>
+                  </div>
+                );
+              }}
+            >
+              <MenuItem value="">
+                <em>Select Institution</em>
+              </MenuItem>
+              {institutions.map((institution) => (
+                <MenuItem key={institution.id} value={institution.id}>
+                  <Avatar
+                    alt={institution.shortName}
+                    src={institution.logo?.links?.square}
+                    sx={{ width: 24, height: 24, marginRight: 1 }}
+                  />
+                  {institution.shortName || institution.name}
+                </MenuItem>
+              ))}
+            </Select>
+
             <button
               onClick={handleUpload}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
