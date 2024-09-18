@@ -43,7 +43,7 @@ A comprehensive application built using Next.js and shadcn/ui for generating and
     Create a `.env.local` file in the root of the project and add your environment variables:
 
     ```env
-    NEXT_PUBLIC_BASI_Q_TOKEN=your_basiq_api_token
+    NEXT_PUBLIC_BASI_Q_API_KEY=your_basiq_api_key
     ```
 
 4. **Run the development server:**
