@@ -209,7 +209,7 @@ export default function ReportPage() {
               {metric.result && (
                 <p className="text-gray-700 mb-2">
                   <strong>Result:</strong> {metric.result.value}{" "}
-                  {metric.result.format === "money" ? "USD" : ""}
+                  {metric.result.format === "money" ? "AUD" : ""}
                 </p>
               )}
               <p className="text-gray-700">

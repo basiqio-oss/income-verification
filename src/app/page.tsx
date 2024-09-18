@@ -29,6 +29,10 @@ export default function HomePage() {
       return;
     }
 
+      // Store the email in localStorage
+    localStorage.setItem("USER_EMAIL", email);
+
+
     try {
       const tokenResponse = await axios.post("/api/generate-token");
       const basiQToken = tokenResponse.data.token;
