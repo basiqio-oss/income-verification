@@ -1,8 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { LayoutGrid, LogOut, User } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -22,6 +22,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function UserNav() {
+  const [email, setEmail] = useState<string | null>(null);
+  const [initial, setInitial] = useState<string>('');
+
+  useEffect(() => {
+    const storedEmail = localStorage.getItem("USER_EMAIL");
+    if (storedEmail) {
+      setEmail(storedEmail);
+      // Extract the first initial of the email
+      const firstInitial = storedEmail.charAt(0).toUpperCase();
+      setInitial(firstInitial);
+    }
+  }, []);
+
   return (
     <DropdownMenu>
       <TooltipProvider disableHoverableContent>
@@ -34,7 +47,9 @@ export function UserNav() {
               >
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="#" alt="Avatar" />
-                  <AvatarFallback className="bg-transparent">JD</AvatarFallback>
+                  <AvatarFallback className="bg-transparent">
+                    {initial || 'A'} {/* Default to 'JD' if initial is empty */}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
@@ -46,24 +61,27 @@ export function UserNav() {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">John Doe</p>
-            <p className="text-xs leading-none text-muted-foreground">
-              johndoe@example.com
-            </p>
+            <p className="text-sm font-medium leading-none">{email}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem className="hover:cursor-pointer" asChild>
-            <Link href="/dashboard" className="flex items-center">
+            <Link href="/users" className="flex items-center">
               <LayoutGrid className="w-4 h-4 mr-3 text-muted-foreground" />
-              Dashboard
+              User Details
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem className="hover:cursor-pointer" asChild>
-            <Link href="/account" className="flex items-center">
+            <Link href="/income" className="flex items-center">
               <User className="w-4 h-4 mr-3 text-muted-foreground" />
-              Account
+              Income Verification
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem className="hover:cursor-pointer" asChild>
+            <Link href="/statements" className="flex items-center">
+              <User className="w-4 h-4 mr-3 text-muted-foreground" />
+              Upload Statements
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
@@ -71,9 +89,9 @@ export function UserNav() {
         <DropdownMenuItem className="hover:cursor-pointer" onClick={() => {}}>
           <LogOut className="w-4 h-4 mr-3 text-muted-foreground" />
           <Link href="/" className="flex items-center">
-              <LayoutGrid className="w-4 h-4 mr-3 text-muted-foreground" />
-              Sign out
-            </Link>
+            <LayoutGrid className="w-4 h-4 mr-3 text-muted-foreground" />
+            Sign out
+          </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
