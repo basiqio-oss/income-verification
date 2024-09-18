@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Button } from "@/components/ui/button";
 import { Input } from '@/components/ui/input';
@@ -13,37 +13,95 @@ const IncomeVerification = () => {
   const [title, setTitle] = useState<string>('');
   const [fromDate, setFromDate] = useState<string>('');
   const [toDate, setToDate] = useState<string>('');
-  const [accounts, setAccounts] = useState<string>('');
-  const [users, setUsers] = useState<string>('');
+  const [accounts, setAccounts] = useState<string[]>([]); // Array for selected account IDs
+  const [users, setUsers] = useState<string[]>([]); // Array for selected user IDs
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isPolling, setIsPolling] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
-  const [jobId, setJobId] = useState<string | null>(null);
+  const [userList, setUserList] = useState<any[]>([]);
+  const [accountList, setAccountList] = useState<any[]>([]); // Store accounts for selected users
+  const [accountError, setAccountError] = useState<string>(''); // Error message for accounts
+  const [visibleUsers, setVisibleUsers] = useState<number>(10); // Number of users to show initially
+  const [jobId, setJobId] = useState<string | null>(null); // Store job ID for polling
+  const [pollAttempts, setPollAttempts] = useState<number>(0); // Counter for polling attempts
 
   const router = useRouter();
   const token = localStorage.getItem("BASI_Q_TOKEN");
 
-  const POLLING_INTERVAL = 2000; // 2 seconds
-  const MAX_ATTEMPTS = 30; // Adjust based on expected time for job completion
+  // Polling constants
+  const POLLING_INTERVAL = 2000; // Polling every 2 seconds
+  const MAX_ATTEMPTS = 30; // Maximum attempts before timeout
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const userResponse = await axios.get(`https://au-api.basiq.io/users`, {
+          headers: {
+            'accept': 'application/json',
+            'authorization': `Bearer ${token}`,
+          },
+        });
+        setUserList(userResponse.data.data);
+      } catch (err) {
+        console.error('Error fetching users:', err);
+        setError('Failed to fetch users');
+      }
+    };
+
+    fetchUsers();
+  }, [token]);
+
+  const handleCheckboxChange = async (userId: string) => {
+    if (users.includes(userId)) {
+      setUsers(users.filter(u => u !== userId));
+      setAccountList(accountList.filter((acc: any) => acc.userId !== userId));
+    } else {
+      setUsers([...users, userId]);
+
+      try {
+        const response = await axios.get(`https://au-api.basiq.io/users/${userId}/accounts`, {
+          headers: {
+            'accept': 'application/json',
+            'authorization': `Bearer ${token}`,
+          },
+        });
+
+        const accountsData = response.data.data;
+        if (accountsData.length > 0) {
+          setAccountList(prevList => [...prevList, ...accountsData.map((acc: any) => ({ ...acc, userId }))]);
+        } else {
+          setAccountError(`No accounts found for user ${userId}`);
+        }
+      } catch (err) {
+        console.error('Error fetching accounts:', err);
+        setAccountError('Failed to fetch accounts');
+      }
+    }
+  };
+
+  const handleAccountCheckboxChange = (accountId: string) => {
+    if (accounts.includes(accountId)) {
+      setAccounts(accounts.filter(acc => acc !== accountId));
+    } else {
+      setAccounts([...accounts, accountId]);
+    }
+  };
 
   const handleVerifyIncome = async () => {
     setIsLoading(true);
-    setIsPolling(true);
     setError('');
-
-    const parsedAccounts = accounts.split(',').map(acc => acc.trim());
-    const parsedUsers = users.split(',').map(user => user.trim());
+    setIsPolling(true);
+    setPollAttempts(0);
 
     try {
-      // Create report request
       const response = await axios.post('https://au-api.basiq.io/reports', {
         reportType: 'CON_AFFOR_01',
         title: title || 'Default Title',
         filters: [
           { name: 'fromDate', value: fromDate },
           { name: 'toDate', value: toDate },
-          { name: 'accounts', value: parsedAccounts },
-          { name: 'users', value: parsedUsers }
+          { name: 'accounts', value: accounts },
+          { name: 'users', value: users }
         ]
       }, {
         headers: {
@@ -57,9 +115,9 @@ const IncomeVerification = () => {
       setJobId(jobId);
       console.log('Job ID:', jobId);
 
-      // Polling function
-      const checkJobStatus = async (jobId: string, attempts: number = 0) => {
-        if (attempts >= MAX_ATTEMPTS) {
+      // Start polling for job status
+      const pollJobStatus = async () => {
+        if (pollAttempts >= MAX_ATTEMPTS) {
           setError('Job status check timed out.');
           setIsPolling(false);
           setIsLoading(false);
@@ -67,7 +125,6 @@ const IncomeVerification = () => {
         }
 
         try {
-          console.log('Checking job status for jobId:', jobId, 'Attempt:', attempts + 1);
           const statusResponse = await axios.get(`https://au-api.basiq.io/jobs/${jobId}`, {
             headers: {
               'authorization': `Bearer ${token}`,
@@ -75,15 +132,10 @@ const IncomeVerification = () => {
             }
           });
 
-          console.log('Job Status Response:', statusResponse.data);
-
           const jobStatus = statusResponse.data.steps[0].status;
           if (jobStatus === 'success') {
             const reportUrl = statusResponse.data.links.source;
 
-            console.log('Report URL:', reportUrl);
-
-            // Fetch the report data
             const reportResponse = await axios.get(reportUrl, {
               headers: {
                 'authorization': `Bearer ${token}`,
@@ -91,10 +143,7 @@ const IncomeVerification = () => {
               }
             });
 
-            // Save the report data in local storage
             localStorage.setItem('reportData', JSON.stringify(reportResponse.data));
-
-            // Redirect to the new page
             router.push('/report');
             setIsPolling(false);
             setIsLoading(false);
@@ -103,7 +152,8 @@ const IncomeVerification = () => {
             setIsPolling(false);
             setIsLoading(false);
           } else {
-            setTimeout(() => checkJobStatus(jobId, attempts + 1), POLLING_INTERVAL);
+            setPollAttempts(prev => prev + 1);
+            setTimeout(pollJobStatus, POLLING_INTERVAL); // Poll again after the interval
           }
         } catch (err) {
           console.error('Error checking job status:', err);
@@ -113,15 +163,17 @@ const IncomeVerification = () => {
         }
       };
 
-      if (jobId) {
-        checkJobStatus(jobId);
-      }
+      pollJobStatus(); // Start polling immediately
     } catch (err) {
       console.error('Error verifying income:', err);
       setError('Failed to verify income');
       setIsLoading(false);
       setIsPolling(false);
     }
+  };
+
+  const handleLoadMoreUsers = () => {
+    setVisibleUsers(visibleUsers + 10); // Load 10 more users
   };
 
   return (
@@ -162,30 +214,63 @@ const IncomeVerification = () => {
                 className="mt-1"
               />
             </div>
-            <div>
-              <Label htmlFor="accounts">Accounts (comma-separated)</Label>
-              <Input
-                id="accounts"
-                value={accounts}
-                onChange={(e) => setAccounts(e.target.value)}
-                placeholder="e.g., account1, account2"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="users">Users (comma-separated)</Label>
-              <Input
-                id="users"
-                value={users}
-                onChange={(e) => setUsers(e.target.value)}
-                placeholder="e.g., user1, user2"
-                className="mt-1"
-              />
-            </div>
           </div>
+
+          <div className="mt-6">
+            <h3 className="text-xl font-semibold">Select Users</h3>
+            {userList.length > 0 ? (
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                {userList.slice(0, visibleUsers).map((user) => (
+                  <div key={user.id} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id={user.id}
+                      value={user.id}
+                      checked={users.includes(user.id)}
+                      onChange={() => handleCheckboxChange(user.id)}
+                      className="mr-2"
+                    />
+                    <Label htmlFor={user.id}>{user.email || `User ${user.id}`}</Label>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500">No users found.</p>
+            )}
+
+            {visibleUsers < userList.length && (
+              <Button onClick={handleLoadMoreUsers} className="mt-4">
+                Load More Users
+              </Button>
+            )}
+          </div>
+
+          <div className="mt-6">
+            <h3 className="text-xl font-semibold">Select Accounts</h3>
+            {accountList.length > 0 ? (
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                {accountList.map((account) => (
+                  <div key={account.id} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id={account.id}
+                      value={account.id}
+                      checked={accounts.includes(account.id)}
+                      onChange={() => handleAccountCheckboxChange(account.id)}
+                      className="mr-2"
+                    />
+                    <Label htmlFor={account.id}>{account.name || `Account ${account.id}`}</Label>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500">{accountError || 'No accounts found for selected users.'}</p>
+            )}
+          </div>
+
           <Button
             onClick={handleVerifyIncome}
-            disabled={isLoading}
+            disabled={isLoading || isPolling}
             className="w-full mt-4"
           >
             {isLoading ? (
@@ -198,14 +283,6 @@ const IncomeVerification = () => {
             ) : 'Verify Income'}
           </Button>
 
-          {isPolling && (
-            <div className="mt-4 flex items-center justify-center text-blue-500">
-              <div className="animate-spin mr-2">
-                <FaSpinner />
-              </div>
-              Loading...
-            </div>
-          )}
           {error && <p className="text-red-500 text-center mt-4">{error}</p>}
         </CardContent>
       </Card>
