@@ -2,7 +2,19 @@
 
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { FaUser, FaPhone, FaEnvelope, FaBusinessTime, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+
+const Card = ({ children }: { children: React.ReactNode }) => (
+  <div className="">
+    {children}
+  </div>
+);
+
+const CardContent = ({ children, className }: { children: React.ReactNode, className?: string }) => (
+  <div className={`p-6 ${className}`}>
+    {children}
+  </div>
+);
 
 const UsersList = () => {
   const [user, setUser] = useState<any>(null);
@@ -90,102 +102,256 @@ const UsersList = () => {
   return (
     <div className="p-6 space-y-6">
       <Card>
-        <CardHeader>
-          <h2 className="text-2xl font-semibold mb-4">User Details</h2>
-        </CardHeader>
         <CardContent className="p-6">
           {loading && <p className="text-blue-500">Loading...</p>}
           {error && <p className="text-red-500">{error}</p>}
           {user ? (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <p className="font-semibold">Type: <span className="font-normal">{user.type}</span></p>
-                <p className="font-semibold">User ID: <span className="font-normal">{user.id}</span></p>
-                <p className="font-semibold">Email: <span className="font-normal">{user.email}</span></p>
-                <p className="font-semibold">Mobile: <span className="font-normal">{user.mobile || 'N/A'}</span></p>
-                <p className="font-semibold">First Name: <span className="font-normal">{user.firstName || 'N/A'}</span></p>
-                <p className="font-semibold">Middle Name: <span className="font-normal">{user.middleName || 'N/A'}</span></p>
-                <p className="font-semibold">Last Name: <span className="font-normal">{user.lastName || 'N/A'}</span></p>
-                <p className="font-semibold">Business Name: <span className="font-normal">{user.businessName || 'N/A'}</span></p>
-                <p className="font-semibold">Business ID No: <span className="font-normal">{user.businessIdNo || 'N/A'}</span></p>
-                <p className="font-semibold">Business ID No Type: <span className="font-normal">{user.businessIdNoType || 'N/A'}</span></p>
-                <p className="font-semibold">Business Address: <span className="font-normal">{user.businessAddress ? user.businessAddress : 'N/A'}</span></p>
-                <p className="font-semibold">Verification Status: <span className="font-normal">{user.verificationStatus ? 'Verified' : 'Not Verified'}</span></p>
-                <p className="font-semibold">Verification Date: <span className="font-normal">{user.verificationDate || 'N/A'}</span></p>
-                <p className="font-semibold">Name: <span className="font-normal">{user.name || 'N/A'}</span></p>
+            <div className="space-y-6">
+              {/* User Details */}
+              <div>
+                <h3 className="text-xl font-semibold mb-4 flex items-center">
+                  <FaUser className="mr-2" /> User Information
+                </h3>
+                <table className="min-w-full">
+                  <tbody>
+                    <tr>
+                      <td className="p-2 font-semibold">Type:</td>
+                      <td className="p-2">{user.type}</td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 font-semibold">User ID:</td>
+                      <td className="p-2">{user.id}</td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 font-semibold">Email:</td>
+                      <td className="p-2">{user.email} <FaEnvelope className="inline ml-2 text-gray-600" /></td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 font-semibold">Mobile:</td>
+                      <td className="p-2">{user.mobile || 'N/A'} <FaPhone className="inline ml-2 text-gray-600" /></td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 font-semibold">First Name:</td>
+                      <td className="p-2">{user.firstName || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 font-semibold">Middle Name:</td>
+                      <td className="p-2">{user.middleName || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 font-semibold">Last Name:</td>
+                      <td className="p-2">{user.lastName || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 font-semibold">Business Name:</td>
+                      <td className="p-2">{user.businessName || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 font-semibold">Business ID No:</td>
+                      <td className="p-2">{user.businessIdNo || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 font-semibold">Business ID No Type:</td>
+                      <td className="p-2">{user.businessIdNoType || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 font-semibold">Business Address:</td>
+                      <td className="p-2">{user.businessAddress || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 font-semibold">Verification Status:</td>
+                      <td className="p-2">
+                        {user.verificationStatus
+                          ? <span className="text-green-500">Verified <FaCheckCircle className="inline ml-2" /></span>
+                          : <span className="text-red-500">Not Verified <FaTimesCircle className="inline ml-2" /></span>}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 font-semibold">Verification Date:</td>
+                      <td className="p-2">{user.verificationDate || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 font-semibold">Name:</td>
+                      <td className="p-2">{user.name || 'N/A'}</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
 
-              <div className="space-y-4 mt-4">
-                <h3 className="text-xl font-semibold">Connections</h3>
+              {/* Connections */}
+              <div>
+                <h3 className="text-xl font-semibold mb-4 flex items-center">
+                  <FaBusinessTime className="mr-2" /> Connections
+                </h3>
                 <p>Total Connections: {user.connections.count}</p>
                 {user.connections && user.connections.data.length > 0 ? (
-                  <ul className="space-y-4">
+                  <ul className="space-y-4 mt-4">
                     {user.connections.data.map((connection: any) => (
-                      <li key={connection.id} className="p-4 border rounded-md shadow-md space-y-2">
-                        <p className="font-semibold">Connection ID: <span className="font-normal">{connection.id}</span></p>
+                      <li key={connection.id}>
+                        <h4 className="text-lg font-semibold mb-4">Connection {connection.id}</h4>
+                        <table className="w-full mb-4">
+                          <tbody>
+                            <tr>
+                              <td className="p-2 font-semibold">Connection ID:</td>
+                              <td className="p-2">{connection.id}</td>
+                            </tr>
+                            {connectionDetails && connectionDetails.id === connection.id && (
+                              <>
+                                <tr>
+                                  <td className="p-2 font-semibold">Status:</td>
+                                  <td className="p-2">{connectionDetails.status}</td>
+                                </tr>
+                                <tr>
+                                  <td className="p-2 font-semibold">Created Date:</td>
+                                  <td className="p-2">{new Date(connectionDetails.createdDate).toLocaleString()}</td>
+                                </tr>
+                                <tr>
+                                  <td className="p-2 font-semibold">Last Used:</td>
+                                  <td className="p-2">{new Date(connectionDetails.lastUsed).toLocaleString()}</td>
+                                </tr>
+                                <tr>
+                                  <td className="p-2 font-semibold">MFA Enabled:</td>
+                                  <td className="p-2">{connectionDetails.mfaEnabled ? 'Yes' : 'No'}</td>
+                                </tr>
+                                <tr>
+                                  <td className="p-2 font-semibold">Method:</td>
+                                  <td className="p-2">{connectionDetails.method}</td>
+                                </tr>
+                                <tr>
+                                  <td className="p-2 font-semibold">Expiry Date:</td>
+                                  <td className="p-2">{connectionDetails.expiryDate || 'N/A'}</td>
+                                </tr>
+                              </>
+                            )}
+                          </tbody>
+                        </table>
+
+                        {/* Profile */}
                         {connectionDetails && connectionDetails.id === connection.id && (
-                          <div className="space-y-4">
-                            <p>Status: <span className="font-normal">{connectionDetails.status}</span></p>
-                            <p>Created Date: <span className="font-normal">{new Date(connectionDetails.createdDate).toLocaleString()}</span></p>
-                            <p>Last Used: <span className="font-normal">{new Date(connectionDetails.lastUsed).toLocaleString()}</span></p>
-                            <p>MFA Enabled: <span className="font-normal">{connectionDetails.mfaEnabled ? 'Yes' : 'No'}</span></p>
-                            <p>Method: <span className="font-normal">{connectionDetails.method}</span></p>
-                            <p>Expiry Date: <span className="font-normal">{connectionDetails.expiryDate || 'N/A'}</span></p>
-                            
-                            <div className="space-y-4">
-                              <h4 className="text-lg font-semibold">Profile</h4>
-                              <p>Full Name: <span className="font-normal">{connectionDetails.profile.fullName}</span></p>
-                              <p>First Name: <span className="font-normal">{connectionDetails.profile.firstName}</span></p>
-                              <p>Last Name: <span className="font-normal">{connectionDetails.profile.lastName}</span></p>
-                              <p>Middle Name: <span className="font-normal">{connectionDetails.profile.middleName || 'N/A'}</span></p>
-                              <p>Phone Numbers: <span className="font-normal">{connectionDetails.profile.phoneNumbers.join(', ')}</span></p>
-                              <p>Email Addresses: <span className="font-normal">{connectionDetails.profile.emailAddresses.join(', ')}</span></p>
-                              <div>
-                                <h5 className="text-md font-semibold">Physical Addresses</h5>
-                                {connectionDetails.profile.physicalAddresses.map((address: any, index: number) => (
-                                  <div key={index} className="space-y-1">
-                                    <p>Address Line 1: <span className="font-normal">{address.addressLine1}</span></p>
-                                    <p>Address Line 2: <span className="font-normal">{address.addressLine2 || 'N/A'}</span></p>
-                                    <p>Address Line 3: <span className="font-normal">{address.addressLine3 || 'N/A'}</span></p>
-                                    <p>Postcode: <span className="font-normal">{address.postcode}</span></p>
-                                    <p>City: <span className="font-normal">{address.city}</span></p>
-                                    <p>State: <span className="font-normal">{address.state}</span></p>
-                                    <p>Country: <span className="font-normal">{address.country}</span></p>
-                                    <p>Country Code: <span className="font-normal">{address.countryCode}</span></p>
-                                    <p>Formatted Address: <span className="font-normal">{address.formattedAddress}</span></p>
-                                  </div>
+                          <div>
+                            <h4 className="text-lg font-semibold mb-4">Profile</h4>
+                            <table className="w-full mb-4">
+                              <tbody>
+                                <tr>
+                                  <td className="p-2 font-semibold">Full Name:</td>
+                                  <td className="p-2">{connectionDetails.profile.fullName}</td>
+                                </tr>
+                                <tr>
+                                  <td className="p-2 font-semibold">First Name:</td>
+                                  <td className="p-2">{connectionDetails.profile.firstName}</td>
+                                </tr>
+                                <tr>
+                                  <td className="p-2 font-semibold">Last Name:</td>
+                                  <td className="p-2">{connectionDetails.profile.lastName}</td>
+                                </tr>
+                                <tr>
+                                  <td className="p-2 font-semibold">Middle Name:</td>
+                                  <td className="p-2">{connectionDetails.profile.middleName || 'N/A'}</td>
+                                </tr>
+                                <tr>
+                                  <td className="p-2 font-semibold">Phone Numbers:</td>
+                                  <td className="p-2">{connectionDetails.profile.phoneNumbers.join(', ')}</td>
+                                </tr>
+                                <tr>
+                                  <td className="p-2 font-semibold">Email Addresses:</td>
+                                  <td className="p-2">{connectionDetails.profile.emailAddresses.join(', ')}</td>
+                                </tr>
+                                <tr>
+                                  <td className="p-2 font-semibold">Physical Addresses:</td>
+                                  <td className="p-2">
+                                    {connectionDetails.profile.physicalAddresses.map((address: any, index: number) => (
+                                      <div key={index} className="space-y-1">
+                                        <p><span className="font-semibold">Address Line 1:</span> {address.addressLine1}</p>
+                                        <p><span className="font-semibold">Address Line 2:</span> {address.addressLine2 || 'N/A'}</p>
+                                        <p><span className="font-semibold">Address Line 3:</span> {address.addressLine3 || 'N/A'}</p>
+                                        <p><span className="font-semibold">Postcode:</span> {address.postcode}</p>
+                                        <p><span className="font-semibold">City:</span> {address.city}</p>
+                                        <p><span className="font-semibold">State:</span> {address.state}</p>
+                                        <p><span className="font-semibold">Country:</span> {address.country}</p>
+                                        <p><span className="font-semibold">Country Code:</span> {address.countryCode}</p>
+                                        <p><span className="font-semibold">Formatted Address:</span> {address.formattedAddress}</p>
+                                      </div>
+                                    ))}
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+
+                        {/* Institution */}
+                        {connectionDetails && connectionDetails.id === connection.id && (
+                          <div>
+                            <h4 className="text-lg font-semibold mb-4">Institution</h4>
+                            <table className="w-full mb-4">
+                              <tbody>
+                                <tr>
+                                  <td className="p-2 font-semibold">Institution ID:</td>
+                                  <td className="p-2">{connectionDetails.institution.id}</td>
+                                </tr>
+                                <tr>
+                                  <td className="p-2 font-semibold">Institution Name:</td>
+                                  <td className="p-2">{institutionName || 'Loading...'}</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+
+                        {/* Accounts */}
+                        {connectionDetails && connectionDetails.id === connection.id && (
+                          <div>
+                            <h4 className="text-lg font-semibold mb-4">Accounts</h4>
+                            {connectionDetails.accounts.data.length > 0 ? (
+                              <ul className="space-y-4">
+                                {connectionDetails.accounts.data.map((account: any) => (
+                                  <li key={account.id} className="border rounded-md mb-4">
+                                    <table className="w-full">
+                                      <tbody>
+                                        <tr>
+                                          <td className="p-2 font-semibold">Account ID:</td>
+                                          <td className="p-2">{account.id}</td>
+                                        </tr>
+                                        <tr>
+                                          <td className="p-2 font-semibold">Account Number:</td>
+                                          <td className="p-2">{account.accountNo}</td>
+                                        </tr>
+                                        <tr>
+                                          <td className="p-2 font-semibold">Name:</td>
+                                          <td className="p-2">{account.name}</td>
+                                        </tr>
+                                        <tr>
+                                          <td className="p-2 font-semibold">Currency:</td>
+                                          <td className="p-2">{account.currency}</td>
+                                        </tr>
+                                        <tr>
+                                          <td className="p-2 font-semibold">Class:</td>
+                                          <td className="p-2">{account.class.product}</td>
+                                        </tr>
+                                        <tr>
+                                          <td className="p-2 font-semibold">Balance:</td>
+                                          <td className="p-2">{account.balance}</td>
+                                        </tr>
+                                        <tr>
+                                          <td className="p-2 font-semibold">Available Funds:</td>
+                                          <td className="p-2">{account.availableFunds}</td>
+                                        </tr>
+                                        <tr>
+                                          <td className="p-2 font-semibold">Last Updated:</td>
+                                          <td className="p-2">{new Date(account.lastUpdated).toLocaleString()}</td>
+                                        </tr>
+                                        <tr>
+                                          <td className="p-2 font-semibold">Status:</td>
+                                          <td className="p-2">{account.status}</td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                  </li>
                                 ))}
-                              </div>
-                            </div>
-
-                            <div className="space-y-4">
-                              <h4 className="text-lg font-semibold">Institution</h4>
-                              <p>Institution ID: <span className="font-normal">{connectionDetails.institution.id}</span></p>
-                              <p>Institution Name: <span className="font-normal">{institutionName || 'Loading...'}</span></p>
-                            </div>
-
-                            <div className="space-y-4">
-                              <h4 className="text-lg font-semibold">Accounts</h4>
-                              {connectionDetails.accounts.data.length > 0 ? (
-                                <ul className="space-y-4">
-                                  {connectionDetails.accounts.data.map((account: any) => (
-                                    <li key={account.id} className="p-4 border rounded-md shadow-md space-y-2">
-                                      <p className="font-semibold">Account ID: <span className="font-normal">{account.id}</span></p>
-                                      <p>Account Number: <span className="font-normal">{account.accountNo}</span></p>
-                                      <p>Name: <span className="font-normal">{account.name}</span></p>
-                                      <p>Currency: <span className="font-normal">{account.currency}</span></p>
-                                      <p>Class: <span className="font-normal">{account.class.product}</span></p>
-                                      <p>Balance: <span className="font-normal">{account.balance}</span></p>
-                                      <p>Available Funds: <span className="font-normal">{account.availableFunds}</span></p>
-                                      <p>Last Updated: <span className="font-normal">{new Date(account.lastUpdated).toLocaleString()}</span></p>
-                                      <p>Status: <span className="font-normal">{account.status}</span></p>
-                                    </li>
-                                  ))}
-                                </ul>
-                              ) : (
-                                <p>No accounts found</p>
-                              )}
-                            </div>
+                              </ul>
+                            ) : (
+                              <p>No accounts found</p>
+                            )}
                           </div>
                         )}
                       </li>

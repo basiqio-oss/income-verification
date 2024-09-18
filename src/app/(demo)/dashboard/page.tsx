@@ -1,7 +1,6 @@
-"use client"; // Add this line at the top
+"use client";
 
 import Link from "next/link";
-//import PlaceholderContent from "@/components/demo/placeholder-content";
 import { ContentLayout } from "@/components/admin-panel/content-layout";
 import {
   Breadcrumb,
@@ -21,51 +20,148 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Bar, Scatter } from 'react-chartjs-2';
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement, LineElement, TimeScale } from 'chart.js';
+import 'chartjs-adapter-date-fns';
+
+ChartJS.register(
+  Title, 
+  Tooltip, 
+  Legend, 
+  BarElement, 
+  CategoryScale, 
+  LinearScale, 
+  PointElement, 
+  LineElement, 
+  TimeScale
+);
+
+interface UserDetail {
+  type: string;
+  id: string;
+  email: string;
+  mobile: string;
+  businessName: string;
+  verificationStatus: boolean;
+  createdTime: string;
+  links: {
+    self: string;
+  };
+}
 
 export default function DashboardPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [jobDetails, setJobDetails] = useState<any>(null);
+  const [users, setUsers] = useState<UserDetail[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<number>(0);
+  const [barChartData, setBarChartData] = useState<any>(null);
+  const [scatterChartData, setScatterChartData] = useState<any>(null);
 
   useEffect(() => {
     const email = localStorage.getItem("USER_EMAIL");
     const token = localStorage.getItem("BASI_Q_TOKEN");
+    const storedJobId = localStorage.getItem("JOB_ID");
     setUserEmail(email || null);
-    const urlParams = new URLSearchParams(window.location.search);
-    const jobId = urlParams.get('jobId');
-    if (jobId && token) {
-      setLoading(true);
-      const interval = setInterval(() => {
-        setProgress((prev) => (prev < 100 ? prev + 1 : 100));
-      }, 100);
 
-      axios.get(`/api/get-job?jobId=${jobId}&token=${token}`)
-        .then(response => {
-          setJobDetails(response.data);
-          setProgress(100);
-          setLoading(false);
-          clearInterval(interval);
+    const urlParams = new URLSearchParams(window.location.search);
+    const jobId = urlParams.get('jobId') || storedJobId;
+
+    if (jobId) {
+      localStorage.setItem("JOB_ID", jobId);
+
+      if (token) {
+        setLoading(true);
+        const interval = setInterval(() => {
+          setProgress((prev) => (prev < 100 ? prev + 1 : 100));
+        }, 100);
+
+        axios.get(`/api/get-job?jobId=${jobId}&token=${token}`)
+          .then(response => {
+            setJobDetails(response.data);
+            setProgress(100);
+            setLoading(false);
+            clearInterval(interval);
+
+            setBarChartData({
+              labels: response.data.steps.map((step: any) => step.title),
+              datasets: [
+                {
+                  label: 'Step Status',
+                  data: response.data.steps.map((step: any) => step.status === 'success' ? 1 : 0),
+                  backgroundColor: response.data.steps.map((step: any) => step.status === 'success' ? 'rgba(75, 192, 192, 0.2)' : 'rgba(255, 99, 132, 0.2)'),
+                  borderColor: response.data.steps.map((step: any) => step.status === 'success' ? 'rgba(75, 192, 192, 1)' : 'rgba(255, 99, 132, 1)'),
+                  borderWidth: 1,
+                },
+              ],
+            });
+
+          })
+          .catch(err => {
+            if (axios.isAxiosError(err)) {
+              console.error('API request error:', err.response?.data || err.message || err);
+              setError('Failed to fetch job details: ' + (err.response?.data?.error || err.message || 'Unknown error'));
+            } else {
+              console.error('Unexpected error:', err);
+              setError('Failed to fetch job details: An unexpected error occurred.');
+            }
+            setLoading(false);
+            clearInterval(interval);
+          });
+
+        axios.get('https://au-api.basiq.io/users', {
+          headers: {
+            'accept': 'application/json',
+            'authorization': `Bearer ${token}`,
+          },
         })
-        .catch(err => {
-          if (axios.isAxiosError(err)) {
-            console.error('API request error:', err.response?.data || err.message || err);
-            setError('Failed to fetch job details: ' + (err.response?.data?.error || err.message || 'Unknown error'));
-          } else {
-            console.error('Unexpected error:', err);
-            setError('Failed to fetch job details: An unexpected error occurred.');
-          }
-          setLoading(false);
-          clearInterval(interval);
-        });
-    } else {
-      if (!jobId) {
-        setError('Job ID is missing');
-      }
-      if (!token) {
+          .then(response => {
+            const usersData: UserDetail[] = response.data.data || [];
+            setUsers(usersData);
+
+            // Aggregate user creation dates
+            const dateCounts: { [key: string]: { count: number, details: UserDetail[] } } = {};
+            
+            usersData.forEach((user: UserDetail) => {
+              const date = new Date(user.createdTime).toISOString().split('T')[0];
+              if (!dateCounts[date]) {
+                dateCounts[date] = { count: 0, details: [] };
+              }
+              dateCounts[date].count += 1;
+              dateCounts[date].details.push({
+                email: user.email,
+                createdTime: user.createdTime
+              });
+            });
+
+            // Prepare scatter chart data
+            setScatterChartData({
+              datasets: [{
+                label: 'Number of Users',
+                data: Object.keys(dateCounts).map(date => ({
+                  x: new Date(date).getTime(),
+                  y: dateCounts[date].count,
+                  details: dateCounts[date].details
+                })),
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+                pointStyle: 'circle',
+                pointRadius: 5,
+              }],
+            });
+          })
+          .catch(err => {
+            console.error('Failed to fetch users:', err);
+            setError('Failed to fetch users: ' + (err.response?.data?.error || err.message || 'Unknown error'));
+          });
+
+      } else {
         setError('Token is missing');
       }
+    } else {
+      setError('Job ID is missing');
     }
   }, []);
 
@@ -88,17 +184,6 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-bold mb-4">
           Welcome{userEmail ? `, ${userEmail}` : ''}
         </h1>
-        <div className="mt-6 p-4">
-          <h2 className="text-xl font-semibold mb-2">Income Verification Instructions</h2>
-          <p className="mb-2">
-            To use the income verification feature with our reports endpoint, follow these steps:
-          </p>
-          <ol className="list-decimal list-inside">
-            <li>Navigate to the <strong>Users</strong> tab to obtain the necessary user IDs.</li>
-            <li>Go to the <strong>Account</strong> tab to get the account IDs.</li>
-            <li>Use these IDs to create the report.</li>
-          </ol>
-        </div>
         {loading && (
           <div className="mt-4">
             <div className="relative pt-1">
@@ -123,35 +208,107 @@ export default function DashboardPage() {
             </div>
           </div>
         )}
-        {error && <p className="text-red-500">{error}</p>}
-        {jobDetails && (
-          <div className="rounded-xl border bg-card text-card-foreground w-full max-w-3xl shadow-lg">
-            <Card>
-              <CardHeader>
-                <CardTitle>Job ID</CardTitle>
-                <CardDescription>{jobDetails.id}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p><strong>Created At:</strong> {new Date(jobDetails.created).toLocaleString()}</p>
-                <p><strong>Updated At:</strong> {new Date(jobDetails.updated).toLocaleString()}</p>
-                <p><strong>Job Type:</strong> {jobDetails.jobType}</p>
-              </CardContent>
-              <CardFooter>
-                <p>Status: {jobDetails.steps.every((step: any) => step.status === 'success') ? 'Success' : 'Incomplete'}</p>
-              </CardFooter>
-            </Card>
-            {jobDetails.steps.map((step: any, index: number) => (
-              <Card key={index}>
-                <CardHeader>
-                  <CardTitle>Step: {step.title}</CardTitle>
-                  <CardDescription>Status: {step.status}</CardDescription>
-                </CardHeader>
-              </Card>
-            ))}
+        {barChartData && (
+          <div className="mt-6">
+            <h2 className="text-xl font-bold mb-4">Job Details</h2>
+            <Bar
+              data={barChartData}
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: {
+                    position: 'top' as const,
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: (tooltipItem) => {
+                        const value = (tooltipItem as any).raw as number;
+                        return `Status: ${value === 1 ? 'Success' : 'Failure'}`;
+                      },
+                    },
+                  },
+                },
+                scales: {
+                  x: {
+                    title: {
+                      display: true,
+                      text: 'Steps',
+                    },
+                  },
+                  y: {
+                    title: {
+                      display: true,
+                      text: 'Status',
+                    },
+                    suggestedMin: 0,
+                    suggestedMax: 1,
+                    ticks: {
+                      stepSize: 1,
+                      callback: (value) => (value === 1 ? 'Success' : 'Failure'),
+                    },
+                  },
+                },
+              }}
+            />
           </div>
         )}
-        <p>&nbsp;</p>
-        {/* <PlaceholderContent /> */}
+        {scatterChartData && (
+          <div className="mt-6">
+            <h2 className="text-xl font-bold mb-4">Number of Users per Day</h2>
+            <Scatter
+              data={scatterChartData}
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: {
+                    position: 'top' as const,
+                  },
+                  tooltip: {
+                    callbacks: {
+                      title: (tooltipItems) => {
+                        const date = new Date(tooltipItems[0].parsed.x).toLocaleDateString();
+                        return date;
+                      },
+                      label: (tooltipItem) => {
+                        const rawData = (tooltipItem as { raw: { details?: UserDetail[] } }).raw;
+                        const details = rawData.details || [];
+                        const numberOfUsers = details.length;
+                        const emails = details.slice(0, 3).map(detail => detail.email).join(', ');
+                        return `Users (${numberOfUsers}): ${emails}${numberOfUsers > 3 ? '...' : ''}`;
+                      },
+                      footer: (tooltipItems) => {
+                        const rawData = (tooltipItems[0] as { raw: { details?: UserDetail[] } }).raw;
+                        const details = rawData.details || [];
+                        return details.slice(0, 3).map(detail => `Created Time: ${new Date(detail.createdTime).toLocaleString()}`).join('\n') + (details.length > 3 ? '\n...' : '');
+                      }
+                    },
+                  },
+                },
+                scales: {
+                  x: {
+                    type: 'time',
+                    time: {
+                      unit: 'day',
+                    },
+                    title: {
+                      display: true,
+                      text: 'Creation Date',
+                    },
+                  },
+                  y: {
+                    title: {
+                      display: true,
+                      text: 'Number of Users',
+                    },
+                    suggestedMin: 0,
+                    suggestedMax: Math.max(...(scatterChartData.datasets[0].data.map((point: any) => point.y))) || 1,
+                  },
+                },
+              }}
+            />
+          </div>
+        )}
+        {error && <div className="text-red-500 mt-4">{error}</div>}
       </div>
     </ContentLayout>
   );
