@@ -82,13 +82,13 @@ export function getMenuList(pathname: string): Group[] {
     {
       groupLabel: "",
       menus: [
-        {
-          href: "/users",
-          label: "User",
-          active: pathname.includes("/users"),
-          icon: Users,
-          submenus: []
-        },
+        // {
+        //   href: "/users",
+        //   label: "User",
+        //   active: pathname.includes("/users"),
+        //   icon: Users,
+        //   submenus: []
+        // },
         {
           href: "/income",
           label: "Income Verification",

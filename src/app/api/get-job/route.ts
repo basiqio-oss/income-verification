@@ -1,13 +1,14 @@
-// app/api/get-job/route.ts
+// src/app/api/get-job/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
 export async function GET(req: NextRequest) {
   try {
     // Extract jobId and token from query parameters
-    const { searchParams } = new URL(req.url);
-    const jobId = searchParams.get('jobId');
-    const token = searchParams.get('token'); // Extract token from query parameters
+    const url = new URL(req.url);
+    const jobId = url.searchParams.get('jobId');
+    const token = url.searchParams.get('token');
 
     console.log(jobId);
     if (!jobId || !token) {

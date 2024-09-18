@@ -35,7 +35,7 @@ const IncomeVerification = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const userResponse = await axios.get(`https://au-api.basiq.io/users`, {
+        const userResponse = await axios.get(`https://au-api.basiq.io/users?limit=1`, {
           headers: {
             'accept': 'application/json',
             'authorization': `Bearer ${token}`,

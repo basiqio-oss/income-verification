@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { GetServerSideProps } from 'next';
 import {
   Card,
   CardContent,
@@ -250,62 +251,6 @@ export default function DashboardPage() {
                       stepSize: 1,
                       callback: (value) => (value === 1 ? 'Success' : 'Failure'),
                     },
-                  },
-                },
-              }}
-            />
-          </div>
-        )}
-        {scatterChartData && (
-          <div className="mt-6">
-            <h2 className="text-xl font-bold mb-4">Number of Users per Day</h2>
-            <Scatter
-              data={scatterChartData}
-              options={{
-                responsive: true,
-                plugins: {
-                  legend: {
-                    position: 'top' as const,
-                  },
-                  tooltip: {
-                    callbacks: {
-                      title: (tooltipItems) => {
-                        const date = new Date(tooltipItems[0].parsed.x).toLocaleDateString();
-                        return date;
-                      },
-                      label: (tooltipItem) => {
-                        const rawData = (tooltipItem as { raw: { details?: UserDetailSubset[] } }).raw;
-                        const details = rawData.details || [];
-                        const numberOfUsers = details.length;
-                        const emails = details.slice(0, 3).map(detail => detail.email).join(', ');
-                        return `Users (${numberOfUsers}): ${emails}${numberOfUsers > 3 ? '...' : ''}`;
-                      },
-                      footer: (tooltipItems) => {
-                        const rawData = (tooltipItems[0] as { raw: { details?: UserDetailSubset[] } }).raw;
-                        const details = rawData.details || [];
-                        return details.slice(0, 3).map(detail => `Created Time: ${new Date(detail.createdTime).toLocaleString()}`).join('\n') + (details.length > 3 ? '\n...' : '');
-                      }
-                    },
-                  },
-                },
-                scales: {
-                  x: {
-                    type: 'time',
-                    time: {
-                      unit: 'day',
-                    },
-                    title: {
-                      display: true,
-                      text: 'Creation Date',
-                    },
-                  },
-                  y: {
-                    title: {
-                      display: true,
-                      text: 'Number of Users',
-                    },
-                    suggestedMin: 0,
-                    suggestedMax: Math.max(...(scatterChartData.datasets[0].data.map((point: any) => point.y))) || 1,
                   },
                 },
               }}
