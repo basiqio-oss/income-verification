@@ -10,9 +10,9 @@ export async function GET(req: NextRequest) {
     const jobId = url.searchParams.get('jobId');
     const token = url.searchParams.get('token');
 
-    console.log(jobId);
-    if (!jobId || !token) {
-      return NextResponse.json({ error: 'Job ID and token are required' }, { status: 400 });
+    if (!jobId || jobId === 'null' || !token || token === 'null') {
+      // Return a message prompting the user to connect a bank account if jobId or token is missing
+      return NextResponse.json({ message: 'Please connect a bank account' }, { status: 400 });
     }
 
     // Fetch job details from Basiq API

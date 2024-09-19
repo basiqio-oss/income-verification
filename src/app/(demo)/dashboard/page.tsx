@@ -10,60 +10,21 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator
 } from "@/components/ui/breadcrumb";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
-import { GetServerSideProps } from 'next';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Bar, Scatter } from 'react-chartjs-2';
-import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement, LineElement, TimeScale } from 'chart.js';
-import 'chartjs-adapter-date-fns';
-
-ChartJS.register(
-  Title, 
-  Tooltip, 
-  Legend, 
-  BarElement, 
-  CategoryScale, 
-  LinearScale, 
-  PointElement, 
-  LineElement, 
-  TimeScale
-);
-
-interface UserDetail {
-  type: string;
-  id: string;
-  email: string;
-  mobile: string;
-  businessName: string;
-  verificationStatus: boolean;
-  createdTime: string;
-  links: {
-    self: string;
-  };
-}
-
-interface UserDetailSubset {
-  email: string;
-  createdTime: string;
-}
+import { CircularProgressBar } from "@/components/CircularProgressBar";
 
 export default function DashboardPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [jobDetails, setJobDetails] = useState<any>(null);
-  const [users, setUsers] = useState<UserDetail[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<number>(0);
-  const [barChartData, setBarChartData] = useState<any>(null);
-  const [scatterChartData, setScatterChartData] = useState<any>(null);
+  const [progressBarColor, setProgressBarColor] = useState<string>('green');
+  const [statusText, setStatusText] = useState<string>('');
+  const [titleText, setTitleText] = useState<string>('');
+  const [showConnectMessage, setShowConnectMessage] = useState<boolean>(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const email = localStorage.getItem("USER_EMAIL");
@@ -74,99 +35,93 @@ export default function DashboardPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const jobId = urlParams.get('jobId') || storedJobId;
 
-    if (jobId) {
-      localStorage.setItem("JOB_ID", jobId);
+    if (!jobId) {
+      setShowConnectMessage(true);
+      return;
+    }
 
-      if (token) {
-        setLoading(true);
-        const interval = setInterval(() => {
-          setProgress((prev) => (prev < 100 ? prev + 1 : 100));
-        }, 100);
+    localStorage.setItem("JOB_ID", jobId);
 
-        // Fetch job details
+    if (token) {
+      setLoading(true);
+
+      const fetchJobDetails = () => {
         axios.get(`/api/get-job?jobId=${jobId}&token=${token}`)
           .then(response => {
-            setJobDetails(response.data);
-            setProgress(100);
-            setLoading(false);
-            clearInterval(interval);
+            const jobData = response.data;
+            setJobDetails(jobData);
 
-            // Prepare bar chart data
-            setBarChartData({
-              labels: response.data.steps.map((step: any) => step.title),
-              datasets: [
-                {
-                  label: 'Step Status',
-                  data: response.data.steps.map((step: any) => step.status === 'success' ? 1 : 0),
-                  backgroundColor: response.data.steps.map((step: any) =>
-                    step.status === 'success' ? 'rgba(75, 192, 192, 0.2)' : 'rgba(255, 99, 132, 0.2)'
-                  ),
-                  borderColor: response.data.steps.map((step: any) =>
-                    step.status === 'success' ? 'rgba(75, 192, 192, 1)' : 'rgba(255, 99, 132, 1)'
-                  ),
-                  borderWidth: 1,
-                },
-              ],
-            });
+            // Determine the progress based on job steps
+            const steps = jobData.steps || [];
+            const totalSteps = steps.length;
+            const completedSteps = steps.filter((step: any) => step.status === 'success').length;
+            const progressPercentage = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
+
+            setProgress(progressPercentage);
+
+            // Determine the color of the progress bar based on job step statuses
+            const anyFailure = steps.some((step: any) => step.status === 'failed');
+            setProgressBarColor(anyFailure ? 'red' : 'green');
+
+            // Get the status and title for the progress bar
+            const failedStep = steps.find((step: any) => step.status === 'failed');
+            if (failedStep) {
+              setStatusText('Failed');
+              setTitleText(failedStep.result?.title || 'Job Failed');
+            } else if (steps.length > 0) {
+              const lastStep = steps[steps.length - 1];
+              if (lastStep.status === 'success') {
+                setStatusText('Success');
+                setTitleText('Job Completed');
+              } else {
+                setStatusText('In Progress');
+                setTitleText('');
+              }
+            } else {
+              setStatusText('No Steps');
+              setTitleText('');
+            }
+
+            // Stop polling if the job is complete
+            const lastStep = steps[steps.length - 1];
+            if (lastStep && (lastStep.status === 'success' || lastStep.status === 'failed')) {
+              clearInterval(intervalRef.current!);
+            }
           })
           .catch(err => {
             console.error('API request error:', err);
-            setError('Failed to fetch job details: ' + (err.response?.data?.error || err.message || 'Unknown error'));
-            setLoading(false);
-            clearInterval(interval);
-          });
 
-        // Fetch users
-        axios.get('https://au-api.basiq.io/users', {
-          headers: {
-            'accept': 'application/json',
-            'authorization': `Bearer ${token}`,
-          },
-        })
-          .then(response => {
-            const usersData: UserDetail[] = response.data.data || [];
-            setUsers(usersData);
-
-            // Aggregate user creation dates
-            const dateCounts: { [key: string]: { count: number, details: UserDetailSubset[] } } = {};
-            usersData.forEach((user: UserDetail) => {
-              const date = new Date(user.createdTime).toISOString().split('T')[0];
-              if (!dateCounts[date]) {
-                dateCounts[date] = { count: 0, details: [] };
-              }
-              dateCounts[date].count += 1;
-              dateCounts[date].details.push({
-                email: user.email,
-                createdTime: user.createdTime
-              });
-            });
-
-            // Prepare scatter chart data
-            setScatterChartData({
-              datasets: [{
-                label: 'Number of Users',
-                data: Object.keys(dateCounts).map(date => ({
-                  x: new Date(date).getTime(),
-                  y: dateCounts[date].count,
-                  details: dateCounts[date].details
-                })),
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1,
-                pointStyle: 'circle',
-                pointRadius: 5,
-              }],
-            });
+            // Handle specific error cases
+            if (err.response?.data?.error === 'Internal server error') {
+              setStatusText('Error');
+              setTitleText('Internal Server Error');
+              setProgressBarColor('red');
+              clearInterval(intervalRef.current!);
+            } else if (err.response?.data?.message === 'Please connect a bank account') {
+              setStatusText('Action Required');
+              setTitleText('Please connect a bank account to proceed.');
+              setProgressBarColor('gray');
+              clearInterval(intervalRef.current!);
+            } else {
+              setError('Failed to fetch job details: ' + (err.response?.data?.error || err.message || 'Unknown error'));
+            }
           })
-          .catch(err => {
-            console.error('Failed to fetch users:', err);
-            setError('Failed to fetch users: ' + (err.response?.data?.error || err.message || 'Unknown error'));
-          });
-      } else {
-        setError('Token is missing');
-      }
+          .finally(() => setLoading(false));
+      };
+
+      fetchJobDetails();
+
+      intervalRef.current = setInterval(() => {
+        fetchJobDetails();
+      }, 2000);
+
+      return () => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+      };
     } else {
-      setError('Job ID is missing');
+      setError('Token is missing');
     }
   }, []);
 
@@ -186,74 +141,40 @@ export default function DashboardPage() {
         </BreadcrumbList>
       </Breadcrumb>
       <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">
-          Welcome{userEmail ? `, ${userEmail}` : ''}
-        </h1>
-        {loading && (
-          <div className="mt-4">
-            <div className="relative pt-1">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded text-teal-600 bg-teal-200">
-                  Loading
-                </div>
-                <div className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded text-teal-600 bg-teal-200">
-                  {progress}%
-                </div>
-              </div>
-              <div className="relative flex mb-2 items-center justify-between">
-                <div className="w-full bg-gray-200 rounded-full">
-                  <div
-                    className="bg-teal-500 text-xs font-medium text-teal-100 text-center p-0.5 leading-none rounded-l-full"
-                    style={{ width: `${progress}%` }}
-                  >
-                    &nbsp;
-                  </div>
-                </div>
-              </div>
+      <div className="p-6">
+        {/* Welcome Section */}
+        <div className="flex items-center mb-6">
+          <h1 className="text-3xl font-extrabold text-gray-800 mr-4">Welcome,</h1>
+          <p className="text-xl text-gray-600">{userEmail || 'Guest'}</p>
+        </div>
+
+        {/* Section Header */}
+        <div className="flex items-center mb-6">
+          <h2 className="text-2xl font-semibold text-gray-700 mr-4">Bank Connection Status</h2>
+        </div>
+      </div>
+        {showConnectMessage ? (
+          <div className="mt-4 flex flex-col items-center">
+            <CircularProgressBar
+              value={0}
+              color="gray"
+              status="Action Required"
+              title="Please connect a bank account"
+            />
+            <div className="mt-4 text-center">
+              <p className="text-lg text-gray-700">To proceed with the income verification, you need to connect a bank account.</p>
+              <Link href="/" className="mt-2 inline-block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                Connect Bank Account
+              </Link>
             </div>
           </div>
-        )}
-        {barChartData && (
-          <div className="mt-6">
-            <h2 className="text-xl font-bold mb-4">Job Details</h2>
-            <Bar
-              data={barChartData}
-              options={{
-                responsive: true,
-                plugins: {
-                  legend: {
-                    position: 'top' as const,
-                  },
-                  tooltip: {
-                    callbacks: {
-                      label: (tooltipItem) => {
-                        const value = (tooltipItem as any).raw as number;
-                        return `Status: ${value === 1 ? 'Success' : 'Failure'}`;
-                      },
-                    },
-                  },
-                },
-                scales: {
-                  x: {
-                    title: {
-                      display: true,
-                      text: 'Steps',
-                    },
-                  },
-                  y: {
-                    title: {
-                      display: true,
-                      text: 'Status',
-                    },
-                    suggestedMin: 0,
-                    suggestedMax: 1,
-                    ticks: {
-                      stepSize: 1,
-                      callback: (value) => (value === 1 ? 'Success' : 'Failure'),
-                    },
-                  },
-                },
-              }}
+        ) : (
+          <div className="mt-4 flex flex-col items-center">
+            <CircularProgressBar
+              value={progress}
+              color={progressBarColor}
+              status={statusText}
+              title={titleText}
             />
           </div>
         )}
