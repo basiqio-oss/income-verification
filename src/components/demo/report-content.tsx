@@ -167,18 +167,18 @@ export default function ReportPage() {
   };
 
   return (
-    <div className="p-6 min-h-screen">
+    <div className="p-6 min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <h2 className="text-3xl font-bold mb-6">Report Details</h2>
-
+  
       {/* Filters Section */}
       <div className="mb-8">
         <h3 className="text-2xl font-semibold mb-4">Filters</h3>
-        <div className="bg-white shadow-lg rounded-lg p-6">
+        <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6">
           <ul className="space-y-6">
             {filters.map((filter, index) => (
               <li key={index} className="flex flex-col space-y-2">
-                <span className="font-medium text-gray-800 text-lg">{filter.name}:</span>
-                <div className="text-gray-600 text-base">
+                <span className="font-medium text-gray-800 dark:text-gray-200 text-lg">{filter.name}:</span>
+                <div className="text-gray-600 dark:text-gray-400 text-base">
                   {Array.isArray(filter.value) ? (
                     filter.value.map((item, i) => (
                       <div key={i} className="mb-1 break-words">{item}</div>
@@ -192,120 +192,185 @@ export default function ReportPage() {
           </ul>
         </div>
       </div>
-
+  
       {/* Metrics Section */}
       <div className="mb-8">
         <h3 className="text-2xl font-semibold mb-4">Metrics</h3>
         <ul className="space-y-6">
           {filteredMetrics.map((metric) => (
-            <li key={metric.id} className="p-6 border border-gray-300 rounded-lg shadow-md bg-white">
+            <li key={metric.id} className="p-6 border border-gray-300 dark:border-gray-700 rounded-lg shadow-md bg-white dark:bg-gray-800">
               <h4 className="text-xl font-semibold mb-2">{metric.id} - {metric.title}</h4>
-              <p className="text-gray-700 mb-2">{metric.description}</p>
+              <p className="text-gray-700 dark:text-gray-300 mb-2">{metric.description}</p>
               {metric.result && (
-                <p className="text-gray-700 mb-2">
+                <p className="text-gray-700 dark:text-gray-300 mb-2">
                   <strong>Result:</strong> {metric.result.value}{" "}
                   {metric.result.format === "money" ? "AUD" : ""}
                 </p>
               )}
-              <p className="text-gray-700">
+              <p className="text-gray-700 dark:text-gray-300">
                 <strong>Sections:</strong> {metric.sections.join(", ")}
               </p>
             </li>
           ))}
         </ul>
       </div>
-
-    {/* Groups Section */}
-    <div className="mb-8">
-      <h3 className="text-2xl font-semibold mb-4">Groups</h3>
-      <div className="chart-container mb-6">
-        {groupChartData.labels.length > 0 && (
-          <BarChart labels={groupChartData.labels} values={groupChartData.values} width={600} height={400} />
-        )}
+  
+      {/* Groups Section */}
+      <div className="mb-8">
+        <h3 className="text-2xl font-semibold mb-4">Groups</h3>
+        <div className="chart-container mb-6">
+          {groupChartData.labels.length > 0 && (
+            <BarChart labels={groupChartData.labels} values={groupChartData.values} width={600} height={400} />
+          )}
+        </div>
+        <ul className="space-y-6">
+          {filteredGroups.map((group) => (
+            <li key={group.id} className="p-6 border border-gray-300 dark:border-gray-700 rounded-lg shadow-md bg-white dark:bg-gray-800">
+              <h4 className="text-xl font-semibold mb-2">{group.id} - {group.title}</h4>
+              <p className="text-gray-700 dark:text-gray-300 mb-2">
+                <strong>Sections:</strong> {group.sections.join(", ")}
+              </p>
+  
+              {/* Group Analysis Section */}
+              <div className="mt-6">
+                <h5 className="text-2xl font-semibold mb-4">Group Analysis</h5>
+                
+                {/* Range Section */}
+                <div className="mb-4">
+                  <h6 className="text-lg font-semibold mb-2">Range</h6>
+                  <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-1">
+                    <li><strong>Start Date:</strong> {group.analysis.range.startDate}</li>
+                    <li><strong>End Date:</strong> {group.analysis.range.endDate}</li>
+                    <li><strong>Duration:</strong> {group.analysis.range.duration} days</li>
+                  </ul>
+                </div>
+                
+                {/* Amount Section */}
+                <div className="mb-4">
+                  <h6 className="text-lg font-semibold mb-2">Amount</h6>
+                  <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-1">
+                    <li><strong>Total:</strong> {group.analysis.amount.total}</li>
+                    <li><strong>Min:</strong> {group.analysis.amount.min}</li>
+                    <li><strong>Max:</strong> {group.analysis.amount.max}</li>
+                    <li><strong>Average Transaction:</strong> {group.analysis.amount.average.transaction}</li>
+                    <li><strong>Average Per Month:</strong> {group.analysis.amount.average.month}</li>
+                    <li><strong>Median Transaction:</strong> {group.analysis.amount.average.medianTransaction}</li>
+                    <li><strong>Median Month:</strong> {group.analysis.amount.average.medianMonth}</li>
+                    <li><strong>Ongoing Month:</strong> {group.analysis.amount.average.ongoingMonth}</li>
+                    <li><strong>Stable Months:</strong> {group.analysis.amount.stableMonths}</li>
+                    <li><strong>Secure Months:</strong> {group.analysis.amount.secureMonths}</li>
+                  </ul>
+                </div>
+  
+                {/* Frequency Section */}
+                <div>
+                  <h6 className="text-lg font-semibold mb-2">Frequency</h6>
+                  <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-1">
+                    <li><strong>Type:</strong> {group.analysis.frequency.type}</li>
+                    <li><strong>Amount:</strong> {group.analysis.frequency.amount}</li>
+                    <li><strong>Display:</strong> {group.analysis.frequency.display}</li>
+                    <li><strong>Next Date:</strong> {group.analysis.frequency.next.date}</li>
+                    <li><strong>Next Amount:</strong> {group.analysis.frequency.next.amount}</li>
+                  </ul>
+                </div>
+              </div>
+  
+              {/* Subgroups Section */}
+              <div className="mt-6">
+                <h5 className="text-2xl font-semibold mb-4">Subgroups</h5>
+                {group.subgroup.map(subgroup => (
+                  <div key={subgroup.id} className="mb-6 border border-gray-300 dark:border-gray-700 rounded-lg shadow-md bg-white dark:bg-gray-800 p-4">
+                    <Accordion
+                      title={subgroup.name}
+                      content={
+                        <div>
+                          <h5 className="text-xl font-semibold mb-4">Transactions</h5>
+                          {subgroup.transactions.length > 0 ? (
+                            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                              <thead>
+                                <tr className="bg-gray-100 dark:bg-gray-700">
+                                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
+                                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Description</th>
+                                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Amount</th>
+                                </tr>
+                              </thead>
+                              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                {subgroup.transactions.map(transaction => (
+                                  <tr key={transaction.id}>
+                                    <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">{transaction.date}</td>
+                                    <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">{transaction.description}</td>
+                                    <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">{transaction.amount}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          ) : (
+                            <p className="text-gray-500 dark:text-gray-400 mt-2">No transactions available.</p>
+                          )}
+  
+                          {/* Analysis Section */}
+                          <div className="mt-6">
+                            <h5 className="text-xl font-semibold mb-4">Analysis</h5>
+                            
+                            {/* Summary Section */}
+                            <div className="mb-4">
+                              <h6 className="text-lg font-semibold mb-2">Summary</h6>
+                              <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-1">
+                                <li><strong>Transaction Count:</strong> {subgroup.analysis.summary.transactionCount}</li>
+                                <li><strong>Overall Percentage Credit:</strong> {subgroup.analysis.summary.overallPercentage.credit}%</li>
+                                <li><strong>Overall Percentage Debit:</strong> {subgroup.analysis.summary.overallPercentage.debit}%</li>
+                              </ul>
+                            </div>
+                            
+                            {/* Range Section */}
+                            <div className="mb-4">
+                              <h6 className="text-lg font-semibold mb-2">Range</h6>
+                              <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-1">
+                                <li><strong>Start Date:</strong> {subgroup.analysis.range.startDate}</li>
+                                <li><strong>End Date:</strong> {subgroup.analysis.range.endDate}</li>
+                                <li><strong>Duration:</strong> {subgroup.analysis.range.duration} days</li>
+                              </ul>
+                            </div>
+                            
+                            {/* Amount Section */}
+                            <div className="mb-4">
+                              <h6 className="text-lg font-semibold mb-2">Amount</h6>
+                              <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-1">
+                                <li><strong>Total:</strong> {subgroup.analysis.amount.total}</li>
+                                <li><strong>Min:</strong> {subgroup.analysis.amount.min}</li>
+                                <li><strong>Max:</strong> {subgroup.analysis.amount.max}</li>
+                                <li><strong>Average Transaction:</strong> {subgroup.analysis.amount.average.transaction}</li>
+                                <li><strong>Average Per Month:</strong> {subgroup.analysis.amount.average.month}</li>
+                                <li><strong>Median Transaction:</strong> {subgroup.analysis.amount.average.medianTransaction}</li>
+                                <li><strong>Median Month:</strong> {subgroup.analysis.amount.average.medianMonth}</li>
+                                <li><strong>Ongoing Month:</strong> {subgroup.analysis.amount.average.ongoingMonth}</li>
+                                <li><strong>Stable Months:</strong> {subgroup.analysis.amount.stableMonths}</li>
+                                <li><strong>Secure Months:</strong> {subgroup.analysis.amount.secureMonths}</li>
+                              </ul>
+                            </div>
+                            
+                            {/* Frequency Section */}
+                            <div>
+                              <h6 className="text-lg font-semibold mb-2">Frequency</h6>
+                              <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-1">
+                                <li><strong>Type:</strong> {subgroup.analysis.frequency.type}</li>
+                                <li><strong>Amount:</strong> {subgroup.analysis.frequency.amount}</li>
+                                <li><strong>Display:</strong> {subgroup.analysis.frequency.display}</li>
+                                <li><strong>Next Date:</strong> {subgroup.analysis.frequency.next.date}</li>
+                                <li><strong>Next Amount:</strong> {subgroup.analysis.frequency.next.amount}</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+            </li>
+          ))}
+        </ul>
       </div>
-      <ul className="space-y-6">
-        {filteredGroups.map((group) => (
-          <li key={group.id} className="p-6 border border-gray-300 rounded-lg shadow-md bg-white">
-            <h4 className="text-xl font-semibold mb-2">{group.id} - {group.title}</h4>
-            <p className="text-gray-700 mb-2">
-              <strong>Sections:</strong> {group.sections.join(", ")}
-            </p>
-
-            {/* Range Section */}
-            <div className="mt-4">
-              <h5 className="font-semibold mb-2">Range</h5>
-              <ul className="list-disc list-inside text-gray-700 space-y-1">
-                <li><strong>Start Date:</strong> {group.analysis.range.startDate}</li>
-                <li><strong>End Date:</strong> {group.analysis.range.endDate}</li>
-                <li><strong>Duration:</strong> {group.analysis.range.duration} days</li>
-              </ul>
-            </div>
-
-            {/* Amount Section */}
-            <div className="mt-4">
-              <h5 className="font-semibold mb-2">Amount</h5>
-              <ul className="list-disc list-inside text-gray-700 space-y-1">
-                <li><strong>Total:</strong> {group.analysis.amount.total}</li>
-                <li><strong>Min:</strong> {group.analysis.amount.min}</li>
-                <li><strong>Max:</strong> {group.analysis.amount.max}</li>
-                <li><strong>Average Transaction:</strong> {group.analysis.amount.average.transaction}</li>
-                <li><strong>Average Per Month:</strong> {group.analysis.amount.average.month}</li>
-                <li><strong>Stable Months:</strong> {group.analysis.amount.stableMonths}</li>
-                <li><strong>Secure Months:</strong> {group.analysis.amount.secureMonths}</li>
-              </ul>
-            </div>
-
-            {/* Frequency Section */}
-            <div className="mt-4">
-              <h5 className="font-semibold mb-2">Frequency</h5>
-              <ul className="list-disc list-inside text-gray-700 space-y-1">
-                <li><strong>Type:</strong> {group.analysis.frequency.type}</li>
-                <li><strong>Amount:</strong> {group.analysis.frequency.amount}</li>
-                <li><strong>Next Date:</strong> {group.analysis.frequency.next.date}</li>
-                <li><strong>Next Amount:</strong> {group.analysis.frequency.next.amount}</li>
-                <li><strong>Subgroup:</strong> {group.analysis.frequency.subgroup}</li>
-              </ul>
-            </div>
-          <p> &nbsp;</p>
-            {/* Accordion for Subgroups */}
-            {group.subgroup.map(subgroup => (
-              <Accordion
-                key={subgroup.id}
-                title={subgroup.name}
-                content={
-                  <>
-                    <h5 className="font-semibold text-lg mb-2">Transactions</h5>
-                    {subgroup.transactions.length > 0 ? (
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead>
-                          <tr className="bg-gray-100">
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {subgroup.transactions.map(transaction => (
-                            <tr key={transaction.id}>
-                              <td className="px-4 py-2 text-sm text-gray-500">{transaction.date}</td>
-                              <td className="px-4 py-2 text-sm text-gray-500">{transaction.description}</td>
-                              <td className="px-4 py-2 text-sm text-gray-500">{transaction.amount}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    ) : (
-                      <p className="text-gray-500 mt-2">No transactions available.</p>
-                    )}
-                  </>
-                }
-              />
-            ))}
-          </li>
-        ))}
-      </ul>
-    </div>
-
     </div>
   );
-}
+};  
