@@ -17,7 +17,6 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [redirecting, setRedirecting] = useState(false); // New state for redirect
-  const router = useRouter();
 
   const handleVerifyIncome = async () => {
     setLoading(true);
