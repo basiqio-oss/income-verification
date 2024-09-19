@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 
 import "./globals.css";
-
 import { ThemeProvider } from "@/providers/theme-provider";
 
 export const metadata: Metadata = {
@@ -15,28 +14,27 @@ export const metadata: Metadata = {
   ),
   title: "Income Verification App",
   description:
-    "A comprehensive application for generating and verifying income reports using Next.js and shadcn/ui, with a modern UI and seamless integration with the Basiq API.",
+    "An income verification app using the Reports API from Basiq. Built with Next.js, it allows generating income reports for financial use cases.",
   alternates: {
-    canonical: "/"
+    canonical: "/",
   },
   openGraph: {
     url: "/",
     title: "Income Verification App",
     description:
-      "A comprehensive application for generating and verifying income reports using Next.js and shadcn/ui, with a modern UI and seamless integration with the Basiq API.",
-    type: "website"
+      "An income verification app using the Reports API from Basiq. Built with Next.js, it allows generating income reports for financial use cases.",
+    type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Income Verification App",
     description:
-      "A comprehensive application for generating and verifying income reports using Next.js and shadcn/ui, with a modern UI and seamless integration with the Basiq API."
-  }
+      "An income verification app using the Reports API from Basiq. Built with Next.js, it allows generating income reports for financial use cases.",
+  },
 };
 
-
 export default function RootLayout({
-  children
+  children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
