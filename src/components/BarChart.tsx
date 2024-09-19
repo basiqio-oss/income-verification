@@ -16,7 +16,7 @@ const BarChart: React.FC<BarChartProps> = ({ labels, values, width = 400, height
     labels,
     datasets: [
       {
-        label: 'Total Count',
+        label: 'Total Amount',
         data: values,
         backgroundColor: 'rgba(75, 192, 192, 0.2)',
         borderColor: 'rgba(75, 192, 192, 1)',
@@ -28,6 +28,31 @@ const BarChart: React.FC<BarChartProps> = ({ labels, values, width = 400, height
   const options = {
     responsive: true,
     maintainAspectRatio: false,
+    plugins: {
+      title: {
+        display: true,
+        text: 'Total Income by Category',
+        padding: {
+          top: 20,
+          bottom: 20,
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: function (tooltipItem: any) {
+            return `AUD ${tooltipItem.raw}`;
+          },
+        },
+      },
+    },
+    scales: {
+      y: {
+        title: {
+          display: true,
+          text: 'AUD',
+        },
+      },
+    },
   };
 
   return <Bar data={data} options={options} width={width} height={height} />;
