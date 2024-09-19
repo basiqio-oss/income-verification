@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import axios from "axios";
 import Link from "next/link";
-import { PanelsTopLeft } from "lucide-react";
+import { PanelsRightBottom } from "lucide-react";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { ModeToggle } from "@/components/mode-toggle";
 import '../styles/global.css';
@@ -80,7 +80,7 @@ export default function HomePage() {
             href="/"
             className="flex justify-start items-center hover:opacity-85 transition-opacity duration-300"
           >
-            <PanelsTopLeft className="w-6 h-6 mr-3" />
+            <PanelsRightBottom className="w-6 h-6 mr-3" />
             <span className="font-bold">BASIQ</span>
             <span className="sr-only">BASIQ</span>
           </Link>
@@ -127,7 +127,7 @@ export default function HomePage() {
             <Button
               onClick={handleVerifyIncome}
               variant="default"
-              className="w-full mt-4"
+              className="w-full"
               disabled={loading}
             >
               {loading ? "Connecting..." : "Connect"}
