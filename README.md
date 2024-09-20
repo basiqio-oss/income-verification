@@ -1,6 +1,6 @@
 # Income Verification App
 
-A comprehensive application built using Next.js and shadcn/ui for generating and verifying income reports. This app demonstrates client-side rendering with React hooks and integrates with the Basiq API to handle token generation and report requests.
+The Income Verification Starter Kit is a comprehensive solution for automating the process of verifying user income through secure bank account connections. Utilising the Basiq Reports API, this kit generates detailed income verification reports that include both user-level and group-level analysis. It enables developers to seamlessly integrate income verification into their applications, providing a thorough understanding of users' financial situations.
 
 ## Features
 
