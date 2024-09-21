@@ -1,11 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ClipLoader } from 'react-spinners';
 import { useRouter } from 'next/navigation';
-import { Select, MenuItem, Avatar, ListItemText } from '@mui/material'; // For dropdown and avatar
+import { Select, MenuItem, Avatar, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import { useDropzone } from 'react-dropzone';
+import { Upload } from "lucide-react";
 
 const IncomeVerification = () => {
   const [statementFile, setStatementFile] = useState<File | null>(null);
@@ -17,6 +20,7 @@ const IncomeVerification = () => {
   const [polling, setPolling] = useState<boolean>(false);
   const [institutions, setInstitutions] = useState<any[]>([]);
   const router = useRouter();
+  const theme = useTheme();
 
   useEffect(() => {
     const fetchInstitutions = async () => {
@@ -34,7 +38,16 @@ const IncomeVerification = () => {
             'authorization': `Bearer ${token}`,
           },
         });
-        setInstitutions(response.data.data); // Set the list of banks
+
+        const { data } = response.data;
+        const errorInstitution = data.find((item: any) => item.code === 'institution-not-supported');
+
+        if (errorInstitution) {
+          setUploadError(`Error: ${errorInstitution.detail}`);
+          return;
+        }
+
+        setInstitutions(data);
       } catch (err) {
         setUploadError('Failed to fetch institutions');
       }
@@ -43,11 +56,19 @@ const IncomeVerification = () => {
     fetchInstitutions();
   }, []);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setStatementFile(e.target.files[0]);
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    if (acceptedFiles && acceptedFiles.length > 0) {
+      setStatementFile(acceptedFiles[0]);
     }
-  };
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'application/pdf': ['.pdf'],
+      'text/csv': ['.csv']
+    }
+  });
 
   const handleUpload = async () => {
     if (!statementFile || !institutionId) {
@@ -85,7 +106,6 @@ const IncomeVerification = () => {
 
       if (response.status === 202 && response.data.type === 'job') {
         const jobId = response.data.id;
-        setJobStatus('Polling for job status...');
         setPolling(true);
         pollJobStatus(jobId);
       } else {
@@ -117,18 +137,22 @@ const IncomeVerification = () => {
         });
 
         const { steps } = response.data;
+        const failedStep = steps.find((step: any) => step.status === 'failed');
+
+        if (failedStep) {
+          setJobStatus(`Job Failed at: ${failedStep.title}. Error: ${failedStep.result.detail}`);
+          setPolling(false);
+          clearInterval(intervalId);
+          return;
+        }
+
         const allStepsSuccessful = steps.every((step: any) => step.status === 'success');
 
         if (allStepsSuccessful) {
           setJobStatus('Job Completed');
           setPolling(false);
           clearInterval(intervalId);
-
           router.push('/income');
-        } else if (response.data.status === 'failed') {
-          setJobStatus('Job Failed');
-          setPolling(false);
-          clearInterval(intervalId);
         }
       } catch (err) {
         setUploadError(`Failed to fetch job status`);
@@ -140,26 +164,50 @@ const IncomeVerification = () => {
 
   return (
     <div>
-      {/* Upload Statement Form */}
       <Card className="w-full max-w-3xl shadow-lg">
-        <CardHeader>
-          <h2 className="text-2xl font-semibold text-gray-800">Upload Statement</h2>
+        <CardHeader className="inline-flex items-center">
+          <h2 className="text-2xl font-semibold">Upload Statement</h2>
         </CardHeader>
+
         <CardContent>
-          <div className="mb-4">
-            <input
-              type="file"
-              accept=".pdf,.csv"
-              onChange={handleFileChange}
-              className="block w-full mb-4"
-            />
-            
-            {/* Dropdown with Bank Logos */}
+          <div className="mb-6">
+            <div
+              {...getRootProps()}
+              className={`border-2 p-6 rounded-lg text-center ${isDragActive ? 'border-blue-500' : 'border-gray-300'} mb-6`}  
+            >
+              <input {...getInputProps()} />
+              {isDragActive ? (
+                <p>Drop the files here...</p>
+              ) : (
+                <p>Drag and drop a file here (PDF or CSV), or click to select one</p>
+              )}
+            </div>
+
             <Select
               value={institutionId}
               onChange={(e) => setInstitutionId(e.target.value as string)}
               displayEmpty
               className="w-full mb-4"
+              style={{
+                color: theme.palette.mode === 'light' ? 'rgb(128 , 128, 128)' : 'rgb(0, 0, 0)',
+                border: '1px solid white',
+              }}
+              MenuProps={{
+                anchorOrigin: {
+                  vertical: 'bottom',
+                  horizontal: 'left',
+                },
+                transformOrigin: {
+                  vertical: 'top',
+                  horizontal: 'left',
+                },
+                PaperProps: {
+                  style: {
+                    maxHeight: 48 * 4.5 + 8,
+                    width: 250,
+                  },
+                },
+              }}
               renderValue={(selected) => {
                 if (!selected) {
                   return <em>Select Institution</em>;
@@ -172,7 +220,9 @@ const IncomeVerification = () => {
                       src={selectedInstitution?.logo?.links?.square}
                       sx={{ width: 24, height: 24, marginRight: 1 }}
                     />
-                    <span>{selectedInstitution?.shortName || selectedInstitution?.name}</span>
+                    <Typography style={{ color: theme.palette.text.primary }}>
+                      {selectedInstitution?.shortName || selectedInstitution?.name}
+                    </Typography>
                   </div>
                 );
               }}
@@ -187,23 +237,32 @@ const IncomeVerification = () => {
                     src={institution.logo?.links?.square}
                     sx={{ width: 24, height: 24, marginRight: 1 }}
                   />
-                  {institution.shortName || institution.name}
+                  <Typography style={{ color: theme.palette.text.primary }}>
+                    {institution.shortName || institution.name}
+                  </Typography>
                 </MenuItem>
               ))}
             </Select>
 
+
             <button
               onClick={handleUpload}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+              className="px-4 py-2 rounded hover:bg-opacity-90 transition"
+              style={{
+                backgroundColor: theme.palette.mode === 'light' ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)',
+                color: theme.palette.mode === 'light' ? 'rgb(255, 255, 255)' : 'rgb(0, 0, 0)',
+                border: '1px solid white',
+              }}
               disabled={uploading || polling}
             >
-              {uploading ? 'Uploading...' : polling ? 'Polling...' : 'Upload Statement'}
+              {polling ? 'Uploading...' : 'Upload Statement'}
             </button>
+
             {uploadError && <p className="text-red-500 mt-2">{uploadError}</p>}
             {uploadSuccess && <p className="text-green-500 mt-2">{uploadSuccess}</p>}
             {polling && (
               <div className="flex justify-center mt-4">
-                <ClipLoader color="#000" loading={polling} size={50} />
+                <ClipLoader color={theme.palette.primary.main} loading={polling} size={50} />
               </div>
             )}
             {jobStatus && <p className="text-gray-500 mt-2">{jobStatus}</p>}
