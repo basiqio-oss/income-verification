@@ -56,46 +56,6 @@ The Income Verification Starter Kit is a comprehensive solution for automating t
 
     Navigate to `http://localhost:3000` to see the application in action.
 
-## Usage
-
-1. **Login Page**: Enter your email address and click "Login" to generate an API token. You will be redirected to the dashboard upon successful token generation.
-
-2. **Dashboard**: Manage and view your income verification reports. This page is accessible only after logging in.
-
 ## API Integration
 
 - **Token Generation**: The login process calls the Basiq API to generate a token. The API endpoint used is `https://au-api.basiq.io/token`.
-
-## Development
-
-### Adding Features
-
-1. **Create a new feature branch:**
-
-    ```bash
-    git checkout -b feature/your-feature
-    ```
-
-2. **Make your changes and commit:**
-
-    ```bash
-    git add .
-    git commit -m "Add your feature"
-    ```
-
-3. **Push to the repository:**
-
-    ```bash
-    git push origin feature/your-feature
-    ```
-
-4. **Create a Pull Request**: Open a Pull Request on GitHub with your changes.
-
-### Running Tests
-
-To run tests (if any), use:
-
-```bash
-npm test
-# or
-yarn test
