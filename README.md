@@ -16,6 +16,14 @@ The Income Verification Starter Kit is a comprehensive solution for automating t
 
 ## Getting Started
 
+### 1. Use the template to create your own repository
+
+    To get started, you will need click the "Use this template" button on the main page of the repo - this will generate a new repository.
+
+    ![template repository screenshot](src/docs/demo.png)
+
+    Then you will need to clone the repository you have just generated. 
+
 ### Prerequisites
 
 - Node.js (>=14.x)
@@ -40,11 +48,19 @@ The Income Verification Starter Kit is a comprehensive solution for automating t
 
 3. **Set up environment variables:**
 
-    Create a `.env.local` file in the root of the project and add your environment variables:
+    If you haven't already, [Sign-up](https://dashboard.basiq.io/login) to the Basiq API service and grab your API key for your application (via the [Developer Dashboard](https://dashboard.basiq.io/)).
 
-    ```env
-    NEXT_PUBLIC_BASI_Q_API_KEY=your_basiq_api_key
+    Once you have a Basiq API key, move the sample `.env.sample` file to `.env.local` and paste in your Basiq API key next to `BASIQ_API_KEY=`
+
+    ```sh
+    mv .env.sample .env.local
     ```
+
+    ```diff
+    - NEXT_PUBLIC_BASI_Q_API_KEY=
+    + NEXT_PUBLIC_BASI_Q_API_KEY=abc123
+    ```
+
 
 4. **Run the development server:**
 
@@ -56,46 +72,6 @@ The Income Verification Starter Kit is a comprehensive solution for automating t
 
     Navigate to `http://localhost:3000` to see the application in action.
 
-## Usage
-
-1. **Login Page**: Enter your email address and click "Login" to generate an API token. You will be redirected to the dashboard upon successful token generation.
-
-2. **Dashboard**: Manage and view your income verification reports. This page is accessible only after logging in.
-
 ## API Integration
 
 - **Token Generation**: The login process calls the Basiq API to generate a token. The API endpoint used is `https://au-api.basiq.io/token`.
-
-## Development
-
-### Adding Features
-
-1. **Create a new feature branch:**
-
-    ```bash
-    git checkout -b feature/your-feature
-    ```
-
-2. **Make your changes and commit:**
-
-    ```bash
-    git add .
-    git commit -m "Add your feature"
-    ```
-
-3. **Push to the repository:**
-
-    ```bash
-    git push origin feature/your-feature
-    ```
-
-4. **Create a Pull Request**: Open a Pull Request on GitHub with your changes.
-
-### Running Tests
-
-To run tests (if any), use:
-
-```bash
-npm test
-# or
-yarn test
