@@ -28,7 +28,7 @@ export default function HomePage() {
       return;
     }
 
-      // Store the email in localStorage
+    // Store the email in localStorage
     localStorage.setItem("USER_EMAIL", email);
 
 
@@ -121,7 +121,14 @@ export default function HomePage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 className="mt-1"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault(); // Prevent form submission if it's within a form
+                    handleVerifyIncome();
+                  }
+                }}
               />
+
             </div>
             <Button
               onClick={handleVerifyIncome}
