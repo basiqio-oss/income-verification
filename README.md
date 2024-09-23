@@ -18,11 +18,11 @@ The Income Verification Starter Kit is a comprehensive solution for automating t
 
 ### 1. Use the template to create your own repository
 
-    To get started, you will need click the "Use this template" button on the main page of the repo - this will generate a new repository.
+To get started, you will need click the "Use this template" button on the main page of the repo - this will generate a new repository.
 
-    ![template repository screenshot](src/docs/demo.png)
+![template repository screenshot](src/docs/demo.png)
 
-    Then you will need to clone the repository you have just generated. 
+Then you will need to clone the repository you have just generated. 
 
 ### Prerequisites
 
