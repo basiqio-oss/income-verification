@@ -28,7 +28,7 @@ export default function HomePage() {
       return;
     }
 
-      // Store the email in localStorage
+    // Store the email in localStorage
     localStorage.setItem("USER_EMAIL", email);
 
 
@@ -111,18 +111,28 @@ export default function HomePage() {
 
           {/* Income Verification Section */}
           <div className="flex flex-col items-center p-8 rounded-lg shadow-lg w-full max-w-sm mx-auto">
-            <h1 className="text-2xl font-bold mb-4">Connect my Bank Account</h1>
+            <h1 className="text-2xl font-bold mb-4">Connect my bank</h1>
             <div className="w-full mb-4">
-              <Label htmlFor="email">Email Address</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                className="mt-1"
+                placeholder="your@email.com"
+                className="mt-1 h-12"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault(); // Prevent form submission if it's within a form
+                    handleVerifyIncome();
+                  }
+                }}
               />
+
             </div>
+            <p className="text-sm text-center mb-4">
+              By continuing you agree to the Terms and Conditions and our Privacy Policy.
+            </p>
             <Button
               onClick={handleVerifyIncome}
               variant="default"

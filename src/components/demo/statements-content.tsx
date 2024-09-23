@@ -12,6 +12,7 @@ import { Upload } from "lucide-react";
 
 const IncomeVerification = () => {
   const [statementFile, setStatementFile] = useState<File | null>(null);
+  const [fileName, setFileName] = useState<string>(''); // New state for file name
   const [institutionId, setInstitutionId] = useState<string>('');
   const [uploading, setUploading] = useState<boolean>(false);
   const [uploadError, setUploadError] = useState<string>('');
@@ -59,6 +60,7 @@ const IncomeVerification = () => {
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
       setStatementFile(acceptedFiles[0]);
+      setFileName(acceptedFiles[0].name); // Set the file name
     }
   }, []);
 
@@ -173,7 +175,7 @@ const IncomeVerification = () => {
           <div className="mb-6">
             <div
               {...getRootProps()}
-              className={`border-2 p-6 rounded-lg text-center ${isDragActive ? 'border-blue-500' : 'border-gray-300'} mb-6`}  
+              className={`border-2 p-6 rounded-lg text-center ${isDragActive ? 'border-blue-500' : 'border-gray-300'} mb-6`}
             >
               <input {...getInputProps()} />
               {isDragActive ? (
@@ -182,6 +184,8 @@ const IncomeVerification = () => {
                 <p>Drag and drop a file here (PDF or CSV), or click to select one</p>
               )}
             </div>
+
+            {fileName && <p className="text-gray-500 mt-2">Selected file: {fileName}</p>} {/* Display file name */}
 
             <Select
               value={institutionId}
@@ -244,19 +248,22 @@ const IncomeVerification = () => {
               ))}
             </Select>
 
-
             <button
               onClick={handleUpload}
-              className="px-4 py-2 rounded hover:bg-opacity-90 transition"
-              style={{
-                backgroundColor: theme.palette.mode === 'light' ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)',
-                color: theme.palette.mode === 'light' ? 'rgb(255, 255, 255)' : 'rgb(0, 0, 0)',
-                border: '1px solid white',
-              }}
+              className={`flex items-center justify-center px-4 py-2 rounded transition-colors ${uploading || polling ? 'bg-gray-300 cursor-not-allowed' : theme.palette.mode === 'light' ? 'bg-black text-white hover:bg-gray-800' : 'bg-white text-black hover:bg-gray-200'
+                }`}
               disabled={uploading || polling}
             >
-              {polling ? 'Uploading...' : 'Upload Statement'}
+              {polling ? (
+                <ClipLoader color={theme.palette.primary.main} loading={true} size={20} />
+              ) : (
+                <>
+                  <Upload className="mr-2" /> {/* Add the icon here */}
+                  Upload Statement
+                </>
+              )}
             </button>
+
 
             {uploadError && <p className="text-red-500 mt-2">{uploadError}</p>}
             {uploadSuccess && <p className="text-green-500 mt-2">{uploadSuccess}</p>}
