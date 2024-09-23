@@ -179,42 +179,48 @@ const IncomeVerification = () => {
   return (
     <div>
       <Card className="w-full max-w-3xl shadow-lg">
-        <CardHeader>
-          <h2 className="text-2xl font-semibold">Income Verification</h2>
-        </CardHeader>
-        <CardContent className="space-y-6 p-6">
-          <div className="grid grid-cols-2 gap-6">
-            <div>
+        <CardContent className="pt-4 px-6 pb-6">
+        <h3 className="text-xl font-semibold">Report Details</h3>
+        <div className="mt-6">
+            {/* Report Title in one line */}
+            <div className="w-full">
               <Label htmlFor="title">Report Title</Label>
               <Input
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Enter report title"
-                className="mt-1"
+                className="mt-1 w-full"  
+                maxLength={50}           
               />
+              <p className="text-sm text-gray-500 mt-1">{title.length}/50</p>  {/* Display character count */}
             </div>
-            <div>
-              <Label htmlFor="fromDate">From Date</Label>
-              <Input
-                id="fromDate"
-                type="date"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="toDate">To Date</Label>
-              <Input
-                id="toDate"
-                type="date"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                className="mt-1"
-              />
+
+            {/* From Date and To Date side by side */}
+            <div className="flex gap-6 mt-6">
+              <div className="flex-1">
+                <Label htmlFor="fromDate">From Date</Label>
+                <Input
+                  id="fromDate"
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="mt-1 w-full"
+                />
+              </div>
+              <div className="flex-1">
+                <Label htmlFor="toDate">To Date</Label>
+                <Input
+                  id="toDate"
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  className="mt-1 w-full"
+                />
+              </div>
             </div>
           </div>
+
 
           <div className="mt-6">
             <h3 className="text-xl font-semibold">Select Users</h3>
