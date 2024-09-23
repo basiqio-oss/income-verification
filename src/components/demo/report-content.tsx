@@ -1,98 +1,101 @@
-"use client";
+"use client"; // Indicates this component is a client component in Next.js
 
+// Import necessary hooks and components
 import { useEffect, useState } from "react";
-import Accordion from "../Accordion";
-import BarChart from "@/components/BarChart";
+import Accordion from "../Accordion"; // Custom Accordion component for collapsible content
+import BarChart from "@/components/BarChart"; // Custom BarChart component for displaying bar charts
 
+// TypeScript interfaces defining the structure of data used in the report
 interface Filter {
-  name: string;
-  value: string | string[];
+  name: string; // Name of the filter
+  value: string | string[]; // Value(s) of the filter
 }
 
 interface Metric {
-  id: string;
-  title: string;
-  description: string;
-  sections: string[];
+  id: string; // Unique identifier for the metric
+  title: string; // Title of the metric
+  description: string; // Description of the metric
+  sections: string[]; // Sections associated with the metric
   result?: {
-    value: string;
-    format?: string;
+    value: string; // Result value of the metric
+    format?: string; // Format of the result (e.g., currency)
   };
 }
 
 interface Transaction {
-  id: string;
-  date: string;
-  description: string;
-  amount: string;
+  id: string; // Unique identifier for the transaction
+  date: string; // Date of the transaction
+  description: string; // Description of the transaction
+  amount: string; // Amount of the transaction
 }
 
 interface Subgroup {
-  id: string;
-  name: string;
-  transactions: Transaction[];
-  analysis: any; // Replace with actual type if available
+  id: string; // Unique identifier for the subgroup
+  name: string; // Name of the subgroup
+  transactions: Transaction[]; // List of transactions in the subgroup
+  analysis: any; // Placeholder for subgroup analysis data
 }
 
 interface Group {
-  id: string;
-  title: string;
-  sections: string[];
-  analysis: {
+  id: string; // Unique identifier for the group
+  title: string; // Title of the group
+  sections: string[]; // Sections associated with the group
+  analysis: { // Analysis results for the group
     summary: {
-      transactionCount: number;
+      transactionCount: number; // Total number of transactions
       overallPercentage: {
-        credit: number;
-        debit: number;
+        credit: number; // Overall percentage of credit transactions
+        debit: number; // Overall percentage of debit transactions
       };
     };
     range: {
-      startDate: string;
-      endDate: string;
-      duration: number;
+      startDate: string; // Start date of the analysis
+      endDate: string; // End date of the analysis
+      duration: number; // Duration in days
     };
     amount: {
-      total: string;
-      min: string;
-      max: string;
-      average: {
-        transaction: string;
-        month: string;
-        medianTransaction: string;
-        medianMonth: string;
-        ongoingMonth: string;
+      total: string; // Total amount in the group
+      min: string; // Minimum transaction amount
+      max: string; // Maximum transaction amount
+      average: { // Average calculations
+        transaction: string; // Average transaction amount
+        month: string; // Average amount per month
+        medianTransaction: string; // Median transaction amount
+        medianMonth: string; // Median amount per month
+        ongoingMonth: string; // Current month's amount
       };
-      stableMonths: number;
-      secureMonths: number;
+      stableMonths: number; // Number of stable months
+      secureMonths: number; // Number of secure months
     };
     frequency: {
-      type: string;
-      amount: string;
-      display: string;
+      type: string; // Frequency type (e.g., weekly, monthly)
+      amount: string; // Frequency amount
+      display: string; // Display representation of frequency
       next: {
-        date: string;
-        amount: string;
+        date: string; // Date of the next occurrence
+        amount: string; // Amount for the next occurrence
       };
-      subgroup: string;
+      subgroup: string; // Associated subgroup
     };
   };
-  subgroup: Subgroup[];
+  subgroup: Subgroup[]; // List of subgroups within the group
 }
 
 interface ReportData {
-  type: string;
-  id: string;
-  title: string;
-  reportType: string;
-  createdDate: string;
-  createdBy: string;
-  filters: Filter[];
+  type: string; // Type of the report
+  id: string; // Unique identifier for the report
+  title: string; // Title of the report
+  reportType: string; // Type of report (e.g., summary, detailed)
+  createdDate: string; // Date when the report was created
+  createdBy: string; // User who created the report
+  filters: Filter[]; // List of filters applied to the report
   data: {
-    metrics: Metric[];
-    groups: Group[];
+    metrics: Metric[]; // List of metrics in the report
+    groups: Group[]; // List of groups in the report
   };
 }
 
+// Allowed metrics and groups to filter the report data
 const allowedMetrics = [
   "ME001", "ME002", "ME003", "ME004", "ME022", "ME033", "ME035", "ME036", "ME037",
   "ME040", "ME042", "ME043", "ME045",
@@ -104,49 +107,53 @@ const allowedGroups = [
   "INC-016", "INC-018", "INC-019", "INC-020", "INC-021"
 ];
 
+// Function to determine if a group is meaningful based on its analysis
 const isGroupMeaningful = (group: Group) => {
   const { analysis } = group;
 
-  return analysis.summary.transactionCount > 0 ||
-         parseFloat(analysis.amount.total) > 0 ||
-         parseFloat(analysis.amount.average.transaction) > 0 ||
-         parseFloat(analysis.amount.average.month) > 0 ||
-         analysis.amount.stableMonths > 0;
+  return analysis.summary.transactionCount > 0 || // At least one transaction
+         parseFloat(analysis.amount.total) > 0 || // Total amount is greater than 0
+         parseFloat(analysis.amount.average.transaction) > 0 || // Average transaction is greater than 0
+         parseFloat(analysis.amount.average.month) > 0 || // Average per month is greater than 0
+         analysis.amount.stableMonths > 0; // At least one stable month
 };
 
+// Function to determine if a metric is meaningful based on its result
 const isMetricMeaningful = (metric: Metric) => {
   const value = metric.result?.value;
 
   if (typeof value === "string") {
     const numericValue = parseFloat(value);
-    return value !== "0.00" && !(numericValue === 0 && !isNaN(numericValue));
+    return value !== "0.00" && !(numericValue === 0 && !isNaN(numericValue)); // Exclude zero values
   } else if (typeof value === "number") {
-    return value !== 0;
+    return value !== 0; // Exclude zero values
   }
 
-  return false;
+  return false; // Non-numeric values are not meaningful
 };
 
+// Main component for displaying the report page
 export default function ReportPage() {
-  const [data, setData] = useState<ReportData | null>(null);
+  const [data, setData] = useState<ReportData | null>(null); // State to hold report data
 
   useEffect(() => {
-    const reportData = localStorage.getItem("reportData");
+    const reportData = localStorage.getItem("reportData"); // Retrieve report data from localStorage
     if (reportData) {
       try {
-        setData(JSON.parse(reportData));
+        setData(JSON.parse(reportData)); // Parse and set the report data
       } catch (e) {
-        console.error("Failed to parse report data:", e);
+        console.error("Failed to parse report data:", e); // Handle parsing error
       }
     }
   }, []);
 
   if (!data) {
-    return <div className="p-4">Loading report...</div>;
+    return <div className="p-4">Loading report...</div>; // Loading state
   }
 
-  const { filters, data: reportData } = data;
+  const { filters, data: reportData } = data; // Destructure filters and report data from state
 
+  // Filter metrics and groups based on allowed lists and meaningful criteria
   const filteredMetrics = reportData.metrics
     .filter((metric) => allowedMetrics.includes(metric.id))
     .filter(isMetricMeaningful);
@@ -181,10 +188,10 @@ export default function ReportPage() {
                 <div className="text-gray-600 dark:text-gray-400 text-base">
                   {Array.isArray(filter.value) ? (
                     filter.value.map((item, i) => (
-                      <div key={i} className="mb-1 break-words">{item}</div>
+                      <div key={i} className="mb-1 break-words">{item}</div> // Display each filter value
                     ))
                   ) : (
-                    <div className="break-words">{filter.value}</div>
+                    <div className="break-words">{filter.value}</div> // Display single filter value
                   )}
                 </div>
               </li>
@@ -204,11 +211,11 @@ export default function ReportPage() {
               {metric.result && (
                 <p className="text-gray-700 dark:text-gray-300 mb-2">
                   <strong>Result:</strong> {metric.result.value}{" "}
-                  {metric.result.format === "money" ? "AUD" : ""}
+                  {metric.result.format === "money" ? "AUD" : ""} {/* Display currency if applicable */}
                 </p>
               )}
               <p className="text-gray-700 dark:text-gray-300">
-                <strong>Sections:</strong> {metric.sections.join(", ")}
+                <strong>Sections:</strong> {metric.sections.join(", ")} {/* Display associated sections */}
               </p>
             </li>
           ))}
@@ -220,7 +227,7 @@ export default function ReportPage() {
         <h3 className="text-2xl font-semibold mb-4">Groups</h3>
         <div className="chart-container mb-6">
           {groupChartData.labels.length > 0 && (
-            <BarChart labels={groupChartData.labels} values={groupChartData.values} width={600} height={400} />
+            <BarChart labels={groupChartData.labels} values={groupChartData.values} width={600} height={400} /> // Display bar chart
           )}
         </div>
         <ul className="space-y-6">
@@ -229,7 +236,7 @@ export default function ReportPage() {
               <li key={group.id} className="p-6 border border-gray-300 dark:border-gray-700 rounded-lg shadow-md bg-white dark:bg-gray-800">
                 <h4 className="text-xl font-semibold mb-2">{group.id} - {group.title}</h4>
                 <p className="text-gray-700 dark:text-gray-300 mb-2">
-                  <strong>Sections:</strong> {group.sections.join(", ")}
+                  <strong>Sections:</strong> {group.sections.join(", ")} {/* Display associated sections */}
                 </p>
 
                 {/* Group Analysis Section */}
@@ -303,7 +310,7 @@ export default function ReportPage() {
                                 </tbody>
                               </table>
                             ) : (
-                              <p className="text-gray-500 dark:text-gray-400 mt-2">No transactions available.</p>
+                              <p className="text-gray-500 dark:text-gray-400 mt-2">No transactions available.</p> // Message when no transactions are found
                             )}
 
                             {/* Analysis Section */}
@@ -364,11 +371,11 @@ export default function ReportPage() {
               </li>
             ))
           ) : (
-            <p className="text-gray-500 dark:text-gray-400 mt-2">No groups found.</p>
+            <p className="text-gray-500 dark:text-gray-400 mt-2">No groups found.</p> // Message when no groups are available
           )}
         </ul>
       </div>
 
     </div>
   );
-};  
+}; 
