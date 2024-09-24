@@ -6,6 +6,7 @@ import axios from 'axios';
 import { CircularProgressBar } from "@/components/CircularProgressBar"; 
 
 export default function DashboardPage() {
+  // State variables for managing user email, job details, loading state, error messages, progress, and other UI text
   const [userEmail, setUserEmail] = useState<string | null>(null); 
   const [jobDetails, setJobDetails] = useState<any>(null); 
   const [loading, setLoading] = useState<boolean>(false); 
@@ -19,30 +20,37 @@ export default function DashboardPage() {
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null); 
 
   useEffect(() => {
+    // Retrieve user email and token from local storage
     const email = localStorage.getItem("USER_EMAIL");
     const token = localStorage.getItem("BASI_Q_TOKEN");
     const storedJobId = localStorage.getItem("JOB_ID");
     setUserEmail(email || null); 
 
+    // Get job ID from URL parameters or local storage
     const urlParams = new URLSearchParams(window.location.search);
     const jobId = urlParams.get('jobId') || storedJobId;
 
+    // If no job ID is found, show a message to connect a bank account
     if (!jobId) {
       setShowConnectMessage(true);
       return;
     }
 
+    // Store the job ID in local storage for future reference
     localStorage.setItem("JOB_ID", jobId);
 
+    // Proceed only if the token is available
     if (token) {
       setLoading(true); 
 
       const fetchJobDetails = () => {
+        // Make API call to fetch job details using the job ID and token
         axios.get(`/api/get-job?jobId=${jobId}&token=${token}`)
           .then(response => {
             const jobData = response.data; 
             setJobDetails(jobData); 
 
+            // Calculate progress based on job steps
             const steps = jobData.steps || [];
             const totalSteps = steps.length;
             const completedSteps = steps.filter((step: any) => step.status === 'success').length;
@@ -50,6 +58,7 @@ export default function DashboardPage() {
 
             setProgress(progressPercentage); 
 
+            // Determine progress bar color based on step status
             const anyFailure = steps.some((step: any) => step.status === 'failed');
             setProgressBarColor(anyFailure ? 'red' : 'green'); 
 
@@ -73,7 +82,7 @@ export default function DashboardPage() {
               setTitleText('');
             }
 
-            // Stop the progress when all steps are complete
+            // Stop progress updates when all steps are complete
             const lastStep = steps[steps.length - 1];
             if (lastStep && (lastStep.status === 'success' || lastStep.status === 'failed')) {
               clearInterval(intervalRef.current!);
@@ -81,6 +90,7 @@ export default function DashboardPage() {
             }
           })
           .catch(err => {
+            // Handle API errors and set appropriate messages
             console.error('API request error:', err);
             if (err.response?.data?.error === 'Internal server error') {
               setStatusText('Failed'); 
@@ -101,8 +111,10 @@ export default function DashboardPage() {
           .finally(() => setLoading(false)); 
       };
 
+      // Fetch job details immediately
       fetchJobDetails(); 
 
+      // Set up interval to fetch job details every 2 seconds
       intervalRef.current = setInterval(() => {
         fetchJobDetails();
       }, 2000);
@@ -112,6 +124,7 @@ export default function DashboardPage() {
         setProgress(prev => Math.min(prev + 1, 100)); // Increment progress by 1
       }, 100); // Adjust the interval duration as needed
 
+      // Cleanup function to clear intervals on component unmount
       return () => {
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
@@ -137,6 +150,7 @@ export default function DashboardPage() {
         </div>
       </div>
       {showConnectMessage ? (
+        // Render message to connect bank account if needed
         <div className="flex items-center mb-6">
           <CircularProgressBar
             value={0}
@@ -152,6 +166,7 @@ export default function DashboardPage() {
           </div>
         </div>
       ) : (
+        // Render progress bar with current job progress
         <div className="flex items-center mb-6">
           <CircularProgressBar
             value={progress}
@@ -161,7 +176,7 @@ export default function DashboardPage() {
           />
         </div>
       )}
-      {error && <div className="text-red-500 mt-4">{error}</div>} 
+      {error && <div className="text-red-500 mt-4">{error}</div>} // Display error message if any
     </div>
   );
 }
