@@ -1,145 +1,142 @@
 'use client';
 
-import Link from "next/link"; // Importing Link component for navigation
-import { useEffect, useState, useRef } from 'react'; // Importing hooks from React
-import axios from 'axios'; // Importing Axios for API requests
-import { CircularProgressBar } from "@/components/CircularProgressBar"; // Importing custom CircularProgressBar component
+import Link from "next/link"; 
+import { useEffect, useState, useRef } from 'react'; 
+import axios from 'axios'; 
+import { CircularProgressBar } from "@/components/CircularProgressBar"; 
 
 export default function DashboardPage() {
-  // State variables
-  const [userEmail, setUserEmail] = useState<string | null>(null); // User email state
-  const [jobDetails, setJobDetails] = useState<any>(null); // Job details state
-  const [loading, setLoading] = useState<boolean>(false); // Loading state
-  const [error, setError] = useState<string | null>(null); // Error state
-  const [progress, setProgress] = useState<number>(0); // Progress percentage state
-  const [progressBarColor, setProgressBarColor] = useState<string>('green'); // Progress bar color state
-  const [statusText, setStatusText] = useState<string>(''); // Status text state
-  const [titleText, setTitleText] = useState<string>(''); // Title text state
-  const [showConnectMessage, setShowConnectMessage] = useState<boolean>(false); // Message to show if bank account is needed
-  const intervalRef = useRef<NodeJS.Timeout | null>(null); // Reference for interval ID
+  const [userEmail, setUserEmail] = useState<string | null>(null); 
+  const [jobDetails, setJobDetails] = useState<any>(null); 
+  const [loading, setLoading] = useState<boolean>(false); 
+  const [error, setError] = useState<string | null>(null); 
+  const [progress, setProgress] = useState<number>(0); 
+  const [progressBarColor, setProgressBarColor] = useState<string>('green'); 
+  const [statusText, setStatusText] = useState<string>(''); 
+  const [titleText, setTitleText] = useState<string>(''); 
+  const [showConnectMessage, setShowConnectMessage] = useState<boolean>(false); 
+  const intervalRef = useRef<NodeJS.Timeout | null>(null); 
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null); 
 
   useEffect(() => {
-    // Retrieve user email and token from local storage
     const email = localStorage.getItem("USER_EMAIL");
     const token = localStorage.getItem("BASI_Q_TOKEN");
     const storedJobId = localStorage.getItem("JOB_ID");
-    setUserEmail(email || null); // Set user email state
+    setUserEmail(email || null); 
 
-    // Get job ID from URL parameters or local storage
     const urlParams = new URLSearchParams(window.location.search);
     const jobId = urlParams.get('jobId') || storedJobId;
 
     if (!jobId) {
-      // Show connect message if job ID is not available
       setShowConnectMessage(true);
       return;
     }
 
-    localStorage.setItem("JOB_ID", jobId); // Store job ID in local storage
+    localStorage.setItem("JOB_ID", jobId);
 
     if (token) {
-      setLoading(true); // Set loading state to true
+      setLoading(true); 
 
       const fetchJobDetails = () => {
-        // Fetch job details from API
         axios.get(`/api/get-job?jobId=${jobId}&token=${token}`)
           .then(response => {
-            const jobData = response.data; // Extract job data from response
-            setJobDetails(jobData); // Set job details state
+            const jobData = response.data; 
+            setJobDetails(jobData); 
 
-            // Determine the progress based on job steps
             const steps = jobData.steps || [];
             const totalSteps = steps.length;
             const completedSteps = steps.filter((step: any) => step.status === 'success').length;
-            const progressPercentage = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0; // Calculate progress percentage
+            const progressPercentage = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
 
-            setProgress(progressPercentage); // Update progress state
+            setProgress(progressPercentage); 
 
-            // Determine the color of the progress bar based on job step statuses
             const anyFailure = steps.some((step: any) => step.status === 'failed');
-            setProgressBarColor(anyFailure ? 'red' : 'green'); // Set progress bar color
+            setProgressBarColor(anyFailure ? 'red' : 'green'); 
 
-            // Get the status and title for the progress bar
-            const failedStep = steps.find((step: any) => step.status === 'failed');
-            if (failedStep) {
-              setStatusText('Failed'); // Set status text for failed step
-              setTitleText(failedStep.result?.title || 'Job Failed'); // Set title text for failed job
+            // Update status and title based on job step results
+            if (anyFailure) {
+              const failedStep = steps.find((step: any) => step.status === 'failed');
+              setStatusText('Failed'); 
+              setTitleText(failedStep.result?.title || 'Job Failed'); 
+              setProgress(100); // Set progress to 100 on failure
             } else if (steps.length > 0) {
               const lastStep = steps[steps.length - 1];
               if (lastStep.status === 'success') {
-                setStatusText('Success'); // Set status text for successful job
-                setTitleText('Job Completed'); // Set title text for completed job
+                setStatusText('Success'); 
+                setTitleText('Job Completed'); 
               } else {
-                setStatusText('In Progress'); // Set status text for ongoing job
+                setStatusText('In Progress'); 
                 setTitleText('');
               }
             } else {
-              setStatusText('No Steps'); // Handle case with no job steps
+              setStatusText('No Steps'); 
               setTitleText('');
             }
 
-            // Stop polling if the job is complete
+            // Stop the progress when all steps are complete
             const lastStep = steps[steps.length - 1];
             if (lastStep && (lastStep.status === 'success' || lastStep.status === 'failed')) {
-              clearInterval(intervalRef.current!); // Clear interval if job is done
+              clearInterval(intervalRef.current!);
+              clearInterval(progressIntervalRef.current!); 
             }
           })
           .catch(err => {
-            console.error('API request error:', err); // Log API request error
-
-            // Handle specific error cases
+            console.error('API request error:', err);
             if (err.response?.data?.error === 'Internal server error') {
-              setStatusText('Error'); // Set error status text
-              setTitleText('Internal Server Error'); // Set error title
-              setProgressBarColor('red'); // Set progress bar color to red
-              clearInterval(intervalRef.current!); // Clear interval
+              setStatusText('Failed'); 
+              setTitleText('Please retry to connect a bank account'); 
+              setProgressBarColor('red'); 
+              setProgress(100); // Set progress to 100 on internal error
+              clearInterval(intervalRef.current!);
             } else if (err.response?.data?.message === 'Please connect a bank account') {
-              setStatusText('Action Required'); // Set action required status
-              setTitleText('Please connect a bank account to proceed.'); // Set title for bank connection
-              setProgressBarColor('gray'); // Set progress bar color to gray
-              clearInterval(intervalRef.current!); // Clear interval
+              setStatusText('Action Required'); 
+              setTitleText('Please connect a bank account to proceed.'); 
+              setProgressBarColor('gray'); 
+              clearInterval(intervalRef.current!);
             } else {
-              setError('Failed to fetch job details: ' + (err.response?.data?.error || err.message || 'Unknown error')); // Set error message
+              setError('Failed to fetch job details: ' + (err.response?.data?.error || err.message || 'Unknown error')); 
             }
           })
-          .finally(() => setLoading(false)); // Set loading state to false after fetching
+          .finally(() => setLoading(false)); 
       };
 
-      fetchJobDetails(); // Fetch job details initially
+      fetchJobDetails(); 
 
-      // Set up polling to fetch job details every 2 seconds
       intervalRef.current = setInterval(() => {
         fetchJobDetails();
       }, 2000);
 
+      // Increment progress every second until it reaches the calculated progress
+      progressIntervalRef.current = setInterval(() => {
+        setProgress(prev => Math.min(prev + 1, 100)); // Increment progress by 1
+      }, 100); // Adjust the interval duration as needed
+
       return () => {
-        // Cleanup function to clear interval on component unmount
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
         }
+        if (progressIntervalRef.current) {
+          clearInterval(progressIntervalRef.current);
+        }
       };
     } else {
-      setError('Token is missing'); // Set error if token is missing
+      setError('Token is missing'); 
     }
   }, []);
 
   return (
     <div className="p-6">
       <div className="p-6">
-        {/* Welcome Section */}
         <div className="flex items-center mb-6">
           <h1 className="text-3xl font-extrabold text-gray-800 mr-4">Welcome,</h1>
-          <p className="text-xl text-gray-600">{userEmail || 'Guest'}</p> {/* Display user email or "Guest" */}
+          <p className="text-xl text-gray-600">{userEmail || 'Guest'}</p> 
         </div>
-
-        {/* Section Header */}
         <div className="flex items-center mb-6">
           <h2 className="text-2xl font-semibold text-gray-700 mr-4">Bank Connection Status</h2>
         </div>
       </div>
       {showConnectMessage ? (
-        // Display message if bank connection is required
-        <div className="mt-4 flex flex-col items-center">
+        <div className="flex items-center mb-6">
           <CircularProgressBar
             value={0}
             color="gray"
@@ -154,8 +151,7 @@ export default function DashboardPage() {
           </div>
         </div>
       ) : (
-        // Display the progress bar if job is in progress
-        <div className="mt-4 flex flex-col items-center">
+        <div className="flex items-center mb-6">
           <CircularProgressBar
             value={progress}
             color={progressBarColor}
@@ -164,7 +160,7 @@ export default function DashboardPage() {
           />
         </div>
       )}
-      {error && <div className="text-red-500 mt-4">{error}</div>} {/* Display error message if any */}
+      {error && <div className="text-red-500 mt-4">{error}</div>} 
     </div>
   );
 }
