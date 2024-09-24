@@ -6,6 +6,12 @@ import axios from 'axios';
 import { CircularProgressBar } from "@/components/CircularProgressBar"; 
 import Cookies from 'js-cookie';
 
+const COOKIES_JOB = 'cookies_job';
+const COOKIES_TOKEN = 'cookies_token';
+const LOCAL_STORAGE_USER_EMAIL = "USER_EMAIL";
+const LOCAL_STORAGE_TOKEN = "BASI_Q_TOKEN";
+const LOCAL_STORAGE_JOB_ID = "JOB_ID";
+
 export default function DashboardPage() {
   // State variables for managing user email, job details, loading state, error messages, progress, and other UI text
   const [userEmail, setUserEmail] = useState<string | null>(null); 
@@ -22,8 +28,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     // Retrieve user email and token from local storage
-    const email = localStorage.getItem("USER_EMAIL");
-    const token = localStorage.getItem("BASI_Q_TOKEN");
+    const email = localStorage.getItem(LOCAL_STORAGE_USER_EMAIL);
+    const token = localStorage.getItem(LOCAL_STORAGE_TOKEN);
 
     // Check if the jobId exists in the URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -31,11 +37,11 @@ export default function DashboardPage() {
 
     // If jobId is found in URL, set it in cookies and local storage
     if (jobId) {
-      Cookies.set('cookies_job', jobId); // Set jobId in cookie
-      localStorage.setItem("JOB_ID", jobId); // Also store in local storage for future reference
+      Cookies.set(COOKIES_JOB, jobId); // Set jobId in cookie
+      localStorage.setItem(LOCAL_STORAGE_JOB_ID, jobId); // Also store in local storage for future reference
     } else {
       // If no jobId is found, check local storage
-      const storedJobId = localStorage.getItem("JOB_ID");
+      const storedJobId = localStorage.getItem(LOCAL_STORAGE_JOB_ID);
       if (!storedJobId) {
         // Show message to connect bank account if jobId is still not found
         setShowConnectMessage(true);
@@ -45,7 +51,7 @@ export default function DashboardPage() {
 
     // Set cookies if token exists
     if (token) {
-      Cookies.set('cookies_token', token);
+      Cookies.set(COOKIES_TOKEN, token);
     }
 
     setUserEmail(email || null); 
@@ -56,7 +62,7 @@ export default function DashboardPage() {
 
       const fetchJobDetails = () => {
         // Use the jobId from the URL or local storage
-        const currentJobId = jobId || localStorage.getItem("JOB_ID");
+        const currentJobId = jobId || localStorage.getItem(LOCAL_STORAGE_JOB_ID);
 
         if (!currentJobId) {
           setShowConnectMessage(true);
@@ -141,7 +147,7 @@ export default function DashboardPage() {
       // Increment progress every second until it reaches the calculated progress
       progressIntervalRef.current = setInterval(() => {
         setProgress(prev => Math.min(prev + 1, 100)); // Increment progress by 1
-      }, 100); // Adjust the interval duration as needed
+      }, 1000); // Adjust the interval duration as needed
 
       // Cleanup function to clear intervals on component unmount
       return () => {
