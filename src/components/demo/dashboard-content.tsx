@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useRef } from 'react'; 
 import axios from 'axios'; 
 import { CircularProgressBar } from "@/components/CircularProgressBar"; 
-import Cookies from 'js-cookie'; // Import js-cookie
+import Cookies from 'js-cookie';
 
 export default function DashboardPage() {
   // State variables for managing user email, job details, loading state, error messages, progress, and other UI text
