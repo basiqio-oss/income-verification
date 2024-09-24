@@ -112,6 +112,8 @@ export function Menu({ isOpen }: MenuProps) {
                     variant="outline"
                     className="w-full justify-center h-10 mt-5"
                   >
+                              <Link href="/" className="flex items-center">
+
                     <span className={cn(isOpen === false ? "" : "mr-4")}>
                       <LogOut size={18}  />
                     </span>
@@ -123,6 +125,7 @@ export function Menu({ isOpen }: MenuProps) {
                     >
                       Sign out
                     </p>
+                    </Link>
                   </Button>
                 </TooltipTrigger>
                 {isOpen === false && (

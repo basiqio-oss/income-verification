@@ -91,6 +91,7 @@ export default function DashboardPage() {
             } else if (err.response?.data?.message === 'Please connect a bank account') {
               setStatusText('Action Required'); 
               setTitleText('Please connect a bank account to proceed.'); 
+              setProgress(100); // Set progress to 100 on internal error
               setProgressBarColor('gray'); 
               clearInterval(intervalRef.current!);
             } else {
