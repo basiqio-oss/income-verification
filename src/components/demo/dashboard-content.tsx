@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useRef } from 'react'; 
 import axios from 'axios'; 
 import { CircularProgressBar } from "@/components/CircularProgressBar"; 
+import Cookies from 'js-cookie'; // Import js-cookie
 
 export default function DashboardPage() {
   // State variables for managing user email, job details, loading state, error messages, progress, and other UI text
@@ -23,29 +24,47 @@ export default function DashboardPage() {
     // Retrieve user email and token from local storage
     const email = localStorage.getItem("USER_EMAIL");
     const token = localStorage.getItem("BASI_Q_TOKEN");
-    const storedJobId = localStorage.getItem("JOB_ID");
-    setUserEmail(email || null); 
 
-    // Get job ID from URL parameters or local storage
+    // Check if the jobId exists in the URL
     const urlParams = new URLSearchParams(window.location.search);
-    const jobId = urlParams.get('jobId') || storedJobId;
+    const jobId = urlParams.get('jobId');
 
-    // If no job ID is found, show a message to connect a bank account
-    if (!jobId) {
-      setShowConnectMessage(true);
-      return;
+    // If jobId is found in URL, set it in cookies and local storage
+    if (jobId) {
+      Cookies.set('cookies_job', jobId); // Set jobId in cookie
+      localStorage.setItem("JOB_ID", jobId); // Also store in local storage for future reference
+    } else {
+      // If no jobId is found, check local storage
+      const storedJobId = localStorage.getItem("JOB_ID");
+      if (!storedJobId) {
+        // Show message to connect bank account if jobId is still not found
+        setShowConnectMessage(true);
+        return;
+      }
     }
 
-    // Store the job ID in local storage for future reference
-    localStorage.setItem("JOB_ID", jobId);
+    // Set cookies if token exists
+    if (token) {
+      Cookies.set('cookies_token', token);
+    }
+
+    setUserEmail(email || null); 
 
     // Proceed only if the token is available
     if (token) {
       setLoading(true); 
 
       const fetchJobDetails = () => {
+        // Use the jobId from the URL or local storage
+        const currentJobId = jobId || localStorage.getItem("JOB_ID");
+
+        if (!currentJobId) {
+          setShowConnectMessage(true);
+          return;
+        }
+
         // Make API call to fetch job details using the job ID and token
-        axios.get(`/api/get-job?jobId=${jobId}&token=${token}`)
+        axios.get(`/api/get-job`)
           .then(response => {
             const jobData = response.data; 
             setJobDetails(jobData); 
@@ -176,7 +195,8 @@ export default function DashboardPage() {
           />
         </div>
       )}
-      {error && <div className="text-red-500 mt-4">{error}</div>} // Display error message if any
+      {error && <div className="text-red-500 mt-4">{error}</div>}    
     </div>
   );
 }
+export const dynamic = 'force-dynamic'
