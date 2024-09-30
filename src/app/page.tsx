@@ -16,11 +16,9 @@ export default function HomePage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [redirecting, setRedirecting] = useState(false);
+  const [redirecting, setRedirecting] = useState(false); // New state for redirect
 
   const handleVerifyIncome = async () => {
-    if (loading) return;
-
     setLoading(true);
     setError("");
 
@@ -30,11 +28,14 @@ export default function HomePage() {
       return;
     }
 
+    // Store the email in localStorage
     localStorage.setItem("USER_EMAIL", email);
+
 
     try {
       const tokenResponse = await axios.post("/api/generate-token");
       const basiQToken = tokenResponse.data.token;
+
       localStorage.setItem("BASI_Q_TOKEN", basiQToken);
 
       const userResponse = await axios.post(
@@ -48,15 +49,17 @@ export default function HomePage() {
       );
 
       const { consentUrl, userId } = userResponse.data;
+      console.log(consentUrl, userId);
+
       if (userId) {
         localStorage.setItem("USER_ID", userId);
       }
 
       if (consentUrl) {
-        setRedirecting(true);
+        setRedirecting(true); // Set redirect state to true
         setTimeout(() => {
           window.location.href = consentUrl;
-        }, 500);
+        }, 500); // Delay redirect to show spinner
       } else {
         setError("Failed to get the consent URL.");
       }
@@ -78,6 +81,7 @@ export default function HomePage() {
           >
             <PanelsRightBottom className="w-6 h-6 mr-3" />
             <span className="font-bold">BASIQ</span>
+            <span className="sr-only">BASIQ</span>
           </Link>
           <nav className="ml-auto flex items-center gap-2">
             <Button
@@ -118,12 +122,13 @@ export default function HomePage() {
                 placeholder="your@email.com"
                 className="mt-1 h-12"
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && !loading) {
-                    e.preventDefault();
+                  if (e.key === "Enter") {
+                    e.preventDefault(); // Prevent form submission if it's within a form
                     handleVerifyIncome();
                   }
                 }}
               />
+
             </div>
             <p className="text-sm text-center mb-4">
               By continuing you agree to the Terms and Conditions and our Privacy Policy.
@@ -134,17 +139,14 @@ export default function HomePage() {
               className="w-full"
               disabled={loading}
             >
-              Connect {/* Button text remains constant */}
+              {loading ? "Connecting..." : "Connect"}
             </Button>
-
-            {/* Show spinner only while loading or redirecting */}
-            {(loading || redirecting) && (
+            {error && <p className="text-red-500 mt-4">{error}</p>}
+            {redirecting && (
               <div className="flex justify-center items-center mt-4">
                 <div className="spinner"></div>
               </div>
             )}
-
-            {error && <p className="text-red-500 mt-4">{error}</p>}
           </div>
         </div>
       </main>
