@@ -5,12 +5,15 @@ import { useEffect, useState, useRef } from 'react';
 import axios from 'axios'; 
 import { CircularProgressBar } from "@/components/CircularProgressBar"; 
 import Cookies from 'js-cookie';
+import { 
+  COOKIES_JOB, 
+  COOKIES_TOKEN, 
+  LOCAL_STORAGE_USER_EMAIL, 
+  LOCAL_STORAGE_TOKEN, 
+  LOCAL_STORAGE_JOB_ID 
+} from '@/components/Constants/constants';
 
-const COOKIES_JOB = 'cookies_job';
-const COOKIES_TOKEN = 'cookies_token';
-const LOCAL_STORAGE_USER_EMAIL = "USER_EMAIL";
-const LOCAL_STORAGE_TOKEN = "BASI_Q_TOKEN";
-const LOCAL_STORAGE_JOB_ID = "JOB_ID";
+
 
 export default function DashboardPage() {
   // State variables for managing user email, job details, loading state, error messages, progress, and other UI text

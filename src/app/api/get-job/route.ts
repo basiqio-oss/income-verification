@@ -3,12 +3,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import { cookies } from 'next/headers';
+import { 
+  COOKIES_JOB, 
+  COOKIES_TOKEN 
+} from '@/components/Constants/constants';
+
 
 export async function GET(req: NextRequest) {
   try {
     const cookieStore = cookies();
-    const token = cookieStore.get("cookies_token")?.value; // Get the token value
-    const jobId = cookieStore.get("cookies_job")?.value; // Get the job ID value
+    const token = cookieStore.get(COOKIES_TOKEN)?.value; // Get the token value
+    const jobId = cookieStore.get(COOKIES_JOB)?.value; // Get the job ID value
 
     if (!jobId || jobId === 'null' || !token || token === 'null') {
       return NextResponse.json({ message: 'Please connect a bank account' }, { status: 400 });
