@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -73,7 +72,7 @@ export default function HomePage() {
       <header className="z-[50] sticky top-0 w-full bg-background/95 border-b backdrop-blur-sm dark:bg-black/[0.6] border-border/40">
         <div className="container h-14 flex items-center">
           <Link
-            href="/"
+            href="https://www.basiq.io/"
             className="flex justify-start items-center hover:opacity-85 transition-opacity duration-300"
           >
             <PanelsRightBottom className="w-6 h-6 mr-3" />
@@ -151,7 +150,7 @@ export default function HomePage() {
       <footer className="py-6 md:py-0 border-t border-border/40">
         <div className="container flex flex-col items-center justify-center gap-4 md:h-24 md:flex-row">
           <p className="text-balance text-center text-sm leading-loose text-muted-foreground">
-            This is a demo app.
+           ⚠ This is a demo app.
           </p>
         </div>
       </footer>

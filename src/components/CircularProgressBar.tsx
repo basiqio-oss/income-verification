@@ -1,20 +1,18 @@
 import React from 'react';
 
 interface CircularProgressBarProps {
-  value: number; // Progress value from 0 to 100
-  size?: number; // Optional size for the progress circle
-  strokeWidth?: number; // Optional stroke width of the circle
-  error?: boolean; // Optional flag to indicate error state
-  status?: string; // Optional status to display inside the circle
-  title?: string; // Optional title to display inside the circle
-  color?: string; // Optional color for the progress circle
+  value: number; 
+  size?: number; 
+  strokeWidth?: number; 
+  status?: string; 
+  title?: string; 
+  color?: string; 
 }
 
 export const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
   value,
   size = 350,
-  strokeWidth = 8,
-  error = false,
+  strokeWidth = 20,
   status = '',
   title = '',
   color = 'red',
@@ -35,7 +33,6 @@ export const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
         role="progressbar"
         viewBox={`0 0 ${size} ${size}`}
       >
-        {/* Background circle */}
         <circle
           stroke="#e6e6e6"
           fill="transparent"
@@ -44,7 +41,6 @@ export const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
           cx={center}
           cy={center}
         />
-        {/* Progress circle */}
         <circle
           stroke={color}
           fill="transparent"
@@ -55,7 +51,7 @@ export const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
           strokeDasharray={circumference}
           strokeDashoffset={progressOffset}
           strokeLinecap="round"
-          style={{ transition: 'stroke-dashoffset 0.5s ease' }}
+          style={{ transition: 'stroke-dashoffset 0.5s ease' }} // Ensure transition is smooth
         />
       </svg>
       <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center">
