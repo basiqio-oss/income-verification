@@ -8,18 +8,14 @@ import Cookies from 'js-cookie';
 import { 
   COOKIES_JOB, 
   COOKIES_TOKEN, 
-  LOCAL_STORAGE_USER_EMAIL, 
-  LOCAL_STORAGE_TOKEN, 
-  LOCAL_STORAGE_JOB_ID 
+  COOKIES_USER_EMAIL, 
+  COOKIES_JOB_ID 
 } from '@/components/Constants/constants';
 
-
-
 export default function DashboardPage() {
-  // State variables for managing user email, job details, loading state, error messages, progress, and other UI text
   const [userEmail, setUserEmail] = useState<string | null>(null); 
-  const [jobDetails, setJobDetails] = useState<any>(null); 
-  const [loading, setLoading] = useState<boolean>(false); 
+  const [, setJobDetails] = useState<any>(null); 
+  const [, setLoading] = useState<boolean>(false); 
   const [error, setError] = useState<string | null>(null); 
   const [progress, setProgress] = useState<number>(0); 
   const [progressBarColor, setProgressBarColor] = useState<string>('green'); 
@@ -30,55 +26,45 @@ export default function DashboardPage() {
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null); 
 
   useEffect(() => {
-    // Retrieve user email and token from local storage
-    const email = localStorage.getItem(LOCAL_STORAGE_USER_EMAIL);
-    const token = localStorage.getItem(LOCAL_STORAGE_TOKEN);
+    const email = Cookies.get(COOKIES_USER_EMAIL);
+    const token = Cookies.get(COOKIES_TOKEN);
 
-    // Check if the jobId exists in the URL
     const urlParams = new URLSearchParams(window.location.search);
     const jobId = urlParams.get('jobId');
 
-    // If jobId is found in URL, set it in cookies and local storage
     if (jobId) {
-      Cookies.set(COOKIES_JOB, jobId); // Set jobId in cookie
-      localStorage.setItem(LOCAL_STORAGE_JOB_ID, jobId); // Also store in local storage for future reference
+      Cookies.set(COOKIES_JOB, jobId);
+      Cookies.set(COOKIES_JOB_ID, jobId);
     } else {
-      // If no jobId is found, check local storage
-      const storedJobId = localStorage.getItem(LOCAL_STORAGE_JOB_ID);
+      const storedJobId = Cookies.get(COOKIES_JOB_ID);
       if (!storedJobId) {
-        // Show message to connect bank account if jobId is still not found
         setShowConnectMessage(true);
         return;
       }
     }
 
-    // Set cookies if token exists
     if (token) {
       Cookies.set(COOKIES_TOKEN, token);
     }
 
     setUserEmail(email || null); 
 
-    // Proceed only if the token is available
     if (token) {
       setLoading(true); 
 
       const fetchJobDetails = () => {
-        // Use the jobId from the URL or local storage
-        const currentJobId = jobId || localStorage.getItem(LOCAL_STORAGE_JOB_ID);
+        const currentJobId = jobId || Cookies.get(COOKIES_JOB_ID);
 
         if (!currentJobId) {
           setShowConnectMessage(true);
           return;
         }
 
-        // Make API call to fetch job details using the job ID and token
         axios.get(`/api/get-job`)
           .then(response => {
             const jobData = response.data; 
             setJobDetails(jobData); 
 
-            // Calculate progress based on job steps
             const steps = jobData.steps || [];
             const totalSteps = steps.length;
             const completedSteps = steps.filter((step: any) => step.status === 'success').length;
@@ -86,16 +72,14 @@ export default function DashboardPage() {
 
             setProgress(progressPercentage); 
 
-            // Determine progress bar color based on step status
             const anyFailure = steps.some((step: any) => step.status === 'failed');
             setProgressBarColor(anyFailure ? 'red' : 'green'); 
 
-            // Update status and title based on job step results
             if (anyFailure) {
               const failedStep = steps.find((step: any) => step.status === 'failed');
               setStatusText('Failed'); 
               setTitleText(failedStep.result?.title || 'Job Failed'); 
-              setProgress(100); // Set progress to 100 on failure
+              setProgress(100);
             } else if (steps.length > 0) {
               const lastStep = steps[steps.length - 1];
               if (lastStep.status === 'success') {
@@ -110,7 +94,6 @@ export default function DashboardPage() {
               setTitleText('');
             }
 
-            // Stop progress updates when all steps are complete
             const lastStep = steps[steps.length - 1];
             if (lastStep && (lastStep.status === 'success' || lastStep.status === 'failed')) {
               clearInterval(intervalRef.current!);
@@ -118,18 +101,17 @@ export default function DashboardPage() {
             }
           })
           .catch(err => {
-            // Handle API errors and set appropriate messages
             console.error('API request error:', err);
             if (err.response?.data?.error === 'Internal server error') {
               setStatusText('Failed'); 
               setTitleText('Please retry to connect a bank account'); 
               setProgressBarColor('red'); 
-              setProgress(100); // Set progress to 100 on internal error
+              setProgress(100);
               clearInterval(intervalRef.current!);
             } else if (err.response?.data?.message === 'Please connect a bank account') {
               setStatusText('Action Required'); 
               setTitleText('Please connect a bank account to proceed.'); 
-              setProgress(100); // Set progress to 100 on internal error
+              setProgress(100);
               setProgressBarColor('gray'); 
               clearInterval(intervalRef.current!);
             } else {
@@ -139,20 +121,16 @@ export default function DashboardPage() {
           .finally(() => setLoading(false)); 
       };
 
-      // Fetch job details immediately
       fetchJobDetails(); 
 
-      // Set up interval to fetch job details every 2 seconds
       intervalRef.current = setInterval(() => {
         fetchJobDetails();
       }, 2000);
 
-      // Increment progress every second until it reaches the calculated progress
       progressIntervalRef.current = setInterval(() => {
-        setProgress(prev => Math.min(prev + 1, 100)); // Increment progress by 1
-      }, 1000); // Adjust the interval duration as needed
+        setProgress(prev => Math.min(prev + 1, 100));
+      }, 1000);
 
-      // Cleanup function to clear intervals on component unmount
       return () => {
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
@@ -178,7 +156,6 @@ export default function DashboardPage() {
         </div>
       </div>
       {showConnectMessage ? (
-        // Render message to connect bank account if needed
         <div className="flex items-center mb-6">
           <CircularProgressBar
             value={0}
@@ -194,7 +171,6 @@ export default function DashboardPage() {
           </div>
         </div>
       ) : (
-        // Render progress bar with current job progress
         <div className="flex items-center mb-6">
           <CircularProgressBar
             value={progress}
