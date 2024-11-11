@@ -78,12 +78,6 @@ export function UserNav() {
               Income Verification
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem className="hover:cursor-pointer" asChild>
-            <Link href="/statements" className="flex items-center">
-              <User className="w-4 h-4 mr-3 text-muted-foreground" />
-              Upload Statements
-            </Link>
-          </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="hover:cursor-pointer" onClick={() => {}}>
