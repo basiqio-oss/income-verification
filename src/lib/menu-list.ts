@@ -47,14 +47,7 @@ export function getMenuList(pathname: string): Group[] {
           active: pathname.includes("/income"),
           icon: Settings,
           submenus: []
-        },
-        {
-          href: "/statements",
-          label: "Upload Statements",
-          active: pathname.includes("/statements"),
-          icon: Upload,
-          submenus: []
-        }        
+        }     
       ]
     }
   ];

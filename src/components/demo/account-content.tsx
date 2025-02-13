@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import Cookies from 'js-cookie'; // Import js-cookie to handle cookies
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { COOKIES_TOKEN, COOKIES_USER_EMAIL } from '@/components/Constants/constants';
 
 // Component for handling income verification accounts
 const IncomeVerification = () => {
@@ -19,9 +21,9 @@ const IncomeVerification = () => {
       setLoading(true); // Set loading to true before fetching
       setError(''); // Clear previous error messages
 
-      // Retrieve token and user ID from localStorage
-      const token = localStorage.getItem("BASI_Q_TOKEN");
-      const userId = localStorage.getItem("USER_ID"); // Ensure USER_ID is stored in localStorage
+      // Retrieve token and user ID from cookies using constants
+      const token = Cookies.get(COOKIES_TOKEN); // Use the constant for the token
+      const userId = Cookies.get(COOKIES_USER_EMAIL); // Use the constant for the user ID
 
       // Check if token and user ID exist
       if (!token || !userId) {
