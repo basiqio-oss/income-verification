@@ -1,7 +1,7 @@
 
 import Link from "next/link";
 import { ContentLayout } from "@/components/admin-panel/content-layout";
-import DashboardContent from '@/components/demo/dashboard-content';
+import PlaceholderContent from "@/components/demo/dashboard-content";
 
 import {
   Breadcrumb,
@@ -29,7 +29,7 @@ export default function DashboardPage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <DashboardContent />
+      <PlaceholderContent />
     </ContentLayout>
   );
 }
