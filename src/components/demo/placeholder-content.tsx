@@ -29,6 +29,8 @@ const IncomeVerification = () => {
   const [visibleUsers, setVisibleUsers] = useState<number>(10); // Number of users to show initially
   const [, setJobId] = useState<string | null>(null); // Store job ID for polling
   const [pollAttempts, setPollAttempts] = useState<number>(0); // Counter for polling attempts
+  const [reportSubType, setReportSubType] = useState<string>('income'); // default value
+
 
   const router = useRouter();
   const token = Cookies.get(COOKIES_TOKEN);
@@ -106,7 +108,8 @@ const IncomeVerification = () => {
           { name: 'fromDate', value: fromDate },
           { name: 'toDate', value: toDate },
           { name: 'accounts', value: accounts },
-          { name: 'users', value: users }
+          { name: 'users', value: users },
+          { name: 'reportSubType', value: reportSubType } // Added filter for sub type
         ]
       }, {
         headers: {
@@ -149,7 +152,7 @@ const IncomeVerification = () => {
               }
             });
 
-            Cookies.set('reportData', JSON.stringify(reportResponse.data));
+            localStorage.setItem('reportData', JSON.stringify(reportResponse.data));
             router.push('/report');
             setIsPolling(false);
             setIsLoading(false);
@@ -226,7 +229,16 @@ const IncomeVerification = () => {
               </div>
             </div>
           </div>
-
+          <div className="mt-6">
+            <Label htmlFor="reportSubType">Report Sub Type</Label>
+            <Input
+              id="reportSubType"
+              value={reportSubType}
+              onChange={(e) => setReportSubType(e.target.value)}
+              placeholder="Enter 'income' or 'expense'"
+              className="mt-1 w-full"
+            />
+          </div>
 
           <div className="mt-6">
             <h3 className="text-xl font-semibold">Select Users</h3>
