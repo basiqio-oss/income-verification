@@ -10,6 +10,8 @@ import { PanelsRightBottom } from "lucide-react";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { ModeToggle } from "@/components/mode-toggle";
 import '../styles/global.css';
+import { COOKIES_TOKEN, COOKIES_USER_ID, COOKIES_USER_EMAIL } from "@/components/Constants/constants";
+import Cookies from "js-cookie";
 
 export default function HomePage() {
   const [email, setEmail] = useState("");
@@ -29,12 +31,12 @@ export default function HomePage() {
       return;
     }
 
-    localStorage.setItem("USER_EMAIL", email);
+    Cookies.set(COOKIES_USER_EMAIL, email);
 
     try {
       const tokenResponse = await axios.post("/api/generate-token");
       const basiQToken = tokenResponse.data.token;
-      localStorage.setItem("BASI_Q_TOKEN", basiQToken);
+      Cookies.set(COOKIES_TOKEN, basiQToken);
 
       const userResponse = await axios.post(
         "/api/server",
@@ -48,7 +50,7 @@ export default function HomePage() {
 
       const { consentUrl, userId } = userResponse.data;
       if (userId) {
-        localStorage.setItem("USER_ID", userId);
+        Cookies.set(COOKIES_USER_ID, userId);
       }
 
       if (consentUrl) {

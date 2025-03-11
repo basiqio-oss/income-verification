@@ -1,13 +1,18 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button } from "@/components/ui/button";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FaSpinner } from 'react-icons/fa';
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import Cookies from 'js-cookie';
+import { 
+  COOKIES_TOKEN, 
+  COOKIES_JOB_ID 
+} from '@/components/Constants/constants';
 
 const IncomeVerification = () => {
   const [title, setTitle] = useState<string>('');
@@ -22,11 +27,11 @@ const IncomeVerification = () => {
   const [accountList, setAccountList] = useState<any[]>([]); // Store accounts for selected users
   const [accountError, setAccountError] = useState<string>(''); // Error message for accounts
   const [visibleUsers, setVisibleUsers] = useState<number>(10); // Number of users to show initially
-  const [jobId, setJobId] = useState<string | null>(null); // Store job ID for polling
+  const [, setJobId] = useState<string | null>(null); // Store job ID for polling
   const [pollAttempts, setPollAttempts] = useState<number>(0); // Counter for polling attempts
 
   const router = useRouter();
-  const token = localStorage.getItem("BASI_Q_TOKEN");
+  const token = Cookies.get(COOKIES_TOKEN);
 
   // Polling constants
   const POLLING_INTERVAL = 2000; // Polling every 2 seconds
@@ -113,6 +118,7 @@ const IncomeVerification = () => {
 
       const jobId = response.data.id;
       setJobId(jobId);
+      Cookies.set(COOKIES_JOB_ID, jobId);
       console.log('Job ID:', jobId);
 
       // Start polling for job status
@@ -143,7 +149,7 @@ const IncomeVerification = () => {
               }
             });
 
-            localStorage.setItem('reportData', JSON.stringify(reportResponse.data));
+            Cookies.set('reportData', JSON.stringify(reportResponse.data));
             router.push('/report');
             setIsPolling(false);
             setIsLoading(false);

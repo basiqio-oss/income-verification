@@ -163,10 +163,6 @@ export default function ReportPage() {
     .filter(isGroupMeaningful);
 
   // Prepare data for charts
-  const metricChartData = {
-    labels: filteredMetrics.map((metric) => metric.title),
-    values: filteredMetrics.map((metric) => parseFloat(metric.result?.value || '0')),
-  };
 
   const groupChartData = {
     labels: filteredGroups.map((group) => group.title),

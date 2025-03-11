@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { FaUser, FaPhone, FaEnvelope, FaBusinessTime, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { COOKIES_TOKEN, COOKIES_USER_ID } from '@/components/Constants/constants';
+import Cookies from 'js-cookie'; // Import js-cookie to handle cookies
 
 const Card = ({ children }: { children: React.ReactNode }) => (
   <div className="">
@@ -28,8 +30,10 @@ const UsersList = () => {
       setLoading(true);
       setError('');
 
-      const token = localStorage.getItem("BASI_Q_TOKEN");
-      const userId = localStorage.getItem("USER_ID");
+
+      // Retrieve token and user ID from cookies using constants
+      const token = Cookies.get(COOKIES_TOKEN); // Use the constant for the token
+      const userId = Cookies.get(COOKIES_USER_ID); // Use the constant for the user ID
 
       if (!token) {
         setError('Token not found');
