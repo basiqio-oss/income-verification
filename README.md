@@ -1,11 +1,11 @@
-# Income Verification App
+# Income/Expense Verification App
 
-The Income Verification Starter Kit is a comprehensive solution for automating the process of verifying user income through secure bank account connections. Utilising the Basiq Reports API, this kit generates detailed income verification reports that include both user-level and group-level analysis. It enables developers to seamlessly integrate income verification into their applications, providing a thorough understanding of users' financial situations.
+The Income/Expense Verification Starter Kit is a comprehensive solution for automating the process of verifying user income and expenses through secure bank account connections. Utilising the Basiq Reports API, this kit generates detailed income/Expense verification reports that include both user-level and group-level analysis. It enables developers to seamlessly integrate income/Expense verification into their applications, providing a thorough understanding of users' financial situations.
 
 ## Features
 
 - **User Authentication**: Simple login page to generate an authentication token.
-- **Report Generation**: Generate income verification reports via the Basiq API.
+- **Report Generation**: Generate income/Expense verification reports via the Basiq API.
 - **Dashboard**: View and manage generated reports (accessible after login).
 
 ## Technologies

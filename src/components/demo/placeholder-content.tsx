@@ -171,20 +171,29 @@ const IncomeVerification = () => {
           })
 
           const jobStatus = statusResponse.data.steps[0].status
+          console.log("Current job status:", jobStatus) // Add logging for debugging
+
           if (jobStatus === "success") {
             const reportUrl = statusResponse.data.links.source
 
-            const reportResponse = await axios.get(reportUrl, {
-              headers: {
-                authorization: `Bearer ${token}`,
-                accept: "application/json",
-              },
-            })
+            try {
+              const reportResponse = await axios.get(reportUrl, {
+                headers: {
+                  authorization: `Bearer ${token}`,
+                  accept: "application/json",
+                },
+              })
 
-            localStorage.setItem("reportData", JSON.stringify(reportResponse.data))
-            router.push("/report")
-            setIsPolling(false)
-            setIsLoading(false)
+              localStorage.setItem("reportData", JSON.stringify(reportResponse.data))
+              setIsPolling(false)
+              setIsLoading(false)
+              router.push("/report")
+            } catch (reportErr) {
+              console.error("Error fetching report:", reportErr)
+              setError("Failed to fetch report data")
+              setIsPolling(false)
+              setIsLoading(false)
+            }
           } else if (jobStatus === "failed") {
             setError(`${capitalizeFirstLetter(reportSubType)} verification failed`)
             setIsPolling(false)
@@ -213,6 +222,18 @@ const IncomeVerification = () => {
   const handleLoadMoreUsers = () => {
     setVisibleUsers(visibleUsers + 10) // Load 10 more users
   }
+
+  // Add this useEffect to clean up polling when component unmounts
+  useEffect(() => {
+    const pollTimer: NodeJS.Timeout | null = null
+
+    return () => {
+      // Clear any pending polling timers when component unmounts
+      if (pollTimer) {
+        clearTimeout(pollTimer)
+      }
+    }
+  }, [])
 
   return (
     <div>
@@ -321,7 +342,7 @@ const IncomeVerification = () => {
           </div>
 
           <Button onClick={handleVerifyIncome} disabled={isLoading || isPolling} className="w-full mt-4">
-            {isLoading ? (
+            {isLoading || isPolling ? (
               <div className="flex items-center justify-center">
                 <div className="animate-spin mr-2">
                   <FaSpinner />

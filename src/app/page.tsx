@@ -105,12 +105,12 @@ export default function HomePage() {
               Income/Expense Verification via BASIQ API
             </h3>
             <span className="max-w-[750px] text-center text-lg font-light text-foreground">
-              Allows businesses and lenders to verify an individual&apos;s income from various financial sources, ensuring
+              Allows businesses and lenders to verify an individual&apos;s income/expense from various financial sources, ensuring
               accurate and reliable income data.
             </span>
           </section>
 
-          {/* Income Verification Section */}
+          {/* Income/Expense Verification Section */}
           <div className="flex flex-col items-center p-8 rounded-lg shadow-lg w-full max-w-sm mx-auto">
             <h1 className="text-2xl font-bold mb-4">Connect my bank</h1>
             <div className="w-full mb-4">
