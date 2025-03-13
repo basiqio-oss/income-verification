@@ -37,18 +37,6 @@ export function getMenuList(pathname: string): Group[] {
           submenus: []
         }
       ]
-    },
-    {
-      groupLabel: "",
-      menus: [
-        {
-          href: "/income",
-          label: "Income Verification",
-          active: pathname.includes("/income"),
-          icon: Settings,
-          submenus: []
-        }     
-      ]
     }
   ];
 }
