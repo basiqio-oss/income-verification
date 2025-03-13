@@ -29,7 +29,7 @@ export default function AccountPage() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Income Verification</BreadcrumbPage>
+            <BreadcrumbPage>Income/Expense Verification</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>

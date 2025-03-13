@@ -9,11 +9,10 @@ import {
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
-  BreadcrumbSeparator
-} from "@/components/ui/breadcrumb";
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 
 export default function DashboardPage() {
-
   return (
     <ContentLayout title="Dashboard">
       <Breadcrumb>
@@ -31,5 +30,6 @@ export default function DashboardPage() {
       </Breadcrumb>
       <PlaceholderContent />
     </ContentLayout>
-  );
+  )
 }
+

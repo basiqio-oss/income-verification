@@ -110,7 +110,7 @@ export default function HomePage() {
             </span>
           </section>
 
-          {/* Income Verification Section */}
+          {/* Income/Expense Verification Section */}
           <div className="flex flex-col items-center p-8 rounded-lg shadow-lg w-full max-w-sm mx-auto">
             <h1 className="text-2xl font-bold mb-4">Connect my bank</h1>
             <div className="w-full mb-4">
