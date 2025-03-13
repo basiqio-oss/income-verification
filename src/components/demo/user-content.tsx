@@ -77,17 +77,6 @@ const fadeInVariants: Variants = {
   },
 }
 
-const pulseVariants: Variants = {
-  pulse: {
-    scale: [1, 1.02, 1],
-    opacity: [0.9, 1, 0.9],
-    transition: {
-      repeat: Number.POSITIVE_INFINITY,
-      duration: 2,
-      ease: "easeInOut",
-    },
-  },
-}
 
 const UsersList = () => {
   const [user, setUser] = useState<any>(null)
@@ -722,7 +711,7 @@ const UsersList = () => {
                         <motion.div variants={fadeInVariants} className="text-center py-12">
                           <Building className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                           <h3 className="text-lg font-medium mb-2">No Connections Found</h3>
-                          <p className="text-muted-foreground">This user doesn't have any bank connections yet.</p>
+                          <p className="text-muted-foreground">This user doesn&apos;t have any bank connections yet.</p>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -763,7 +752,6 @@ const UsersList = () => {
                               onMouseEnter={() => setAccountHovered(account.id)}
                               onMouseLeave={() => setAccountHovered(null)}
                               animate={accountHovered === account.id ? "pulse" : ""}
-                              variants={pulseVariants}
                             >
                               <div
                                 className={`p-4 cursor-pointer transition-colors ${
