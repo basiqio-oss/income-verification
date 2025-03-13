@@ -105,7 +105,7 @@ export default function HomePage() {
               Income/Expense Verification via BASIQ API
             </h3>
             <span className="max-w-[750px] text-center text-lg font-light text-foreground">
-              Allows businesses and lenders to verify an individual&apos;s income from various financial sources, ensuring
+              Allows businesses and lenders to verify an individual&apos;s income/expense from various financial sources, ensuring
               accurate and reliable income data.
             </span>
           </section>
