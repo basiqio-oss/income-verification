@@ -72,12 +72,6 @@ export function UserNav() {
               User Details
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem className="hover:cursor-pointer" asChild>
-            <Link href="/income" className="flex items-center">
-              <User className="w-4 h-4 mr-3 text-muted-foreground" />
-              Income Verification
-            </Link>
-          </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="hover:cursor-pointer" onClick={() => {}}>
